@@ -150,7 +150,8 @@ public static class MountainEnvironmentBuilder
 
     static float Steep(float x, float z)
     {
-        float nx = Mathf.Clamp01((x + Size / 2f) / Size), nz = Mathf.Clamp01((z + Size / 2f) / Size);
+        float S = terrain.terrainData.size.x;
+        float nx = Mathf.Clamp01((x + S / 2f) / S), nz = Mathf.Clamp01((z + S / 2f) / S);
         return terrain.terrainData.GetSteepness(nx, nz);
     }
 
@@ -865,7 +866,7 @@ public static class MountainEnvironmentBuilder
         var rootGo = GameObject.Find(RootName);
         terrain = rootGo != null ? rootGo.GetComponentInChildren<Terrain>() : null;
         if (terrain == null) { Debug.LogWarning("Mountain Environment: build the terrain first."); return false; }
-        originX = terrain.transform.position.x + Size / 2f;
+        originX = terrain.transform.position.x + terrain.terrainData.size.x / 2f;
         rng = new System.Random(41);
         WX = PathX(30f) - 7f; WZ = 30f; CX = PathX(14f) - 13f; CZ = 14f;
         return true;
@@ -1481,6 +1482,479 @@ public static class MountainEnvironmentBuilder
         AssetDatabase.SaveAssets();
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
         Debug.Log("Mountain Environment: added " + nb + " big bushes, " + nt + " brown-bark trees (existing trees recoloured), " + nr + " boulders.");
+    }
+
+    // ---------------------------------------------------------------- climb: slope up to the defenses, even scatter, better grass, far-distance fixes
+    const float ClimbHeight = 26f;
+    static float Smooth01(float t) { t = Mathf.Clamp01(t); return t * t * (3f - 2f * t); }
+    static float ClimbRamp(float z) { return ClimbHeight * Smooth01((z + 70f) / 95f); }
+
+    static bool OkSpot(float x, float z, float trailClear, float padClear, float maxSteep)
+    {
+        if (Mathf.Abs(x - PathX(z)) < trailClear) return false;
+        if (Dist(x, z, CX, CZ) < padClear || Dist(x, z, WX, WZ) < padClear) return false;
+        return Steep(x, z) <= maxSteep;
+    }
+
+    // jittered grid: one candidate per cell, so coverage is even across the whole terrain (no bare areas, no clumps of clutter)
+    static List<Vector2> JitterGrid(float cell, float half, float accept)
+    {
+        var list = new List<Vector2>();
+        for (float gz = -half; gz < half; gz += cell)
+            for (float gx = -half; gx < half; gx += cell)
+            {
+                if (R() > accept) continue;
+                list.Add(new Vector2(gx + R(0f, cell), gz + R(0f, cell)));
+            }
+        return list;
+    }
+
+    static float Ramp2(float z) { return 30f * Smooth01((z + 170f) / 230f); }
+
+    // doubles the terrain (the old terrain stays exactly where it is, in the middle), adds a longer climb, and raises mountain ridges around the edge
+    static void EnlargeTerrainAndSteepen(TerrainData td)
+    {
+        int res = td.heightmapResolution; Vector3 sz = td.size;
+        float[,] h = td.GetHeights(0, 0, res, res);
+        int aw = td.alphamapWidth, ah = td.alphamapHeight;
+        float[,,] a = td.GetAlphamaps(0, 0, aw, ah);
+        int L = a.GetLength(2);
+        int n = (res - 1) * 2 + 1, off = (res - 1) / 2;
+        float newW = sz.x * 2f, cell = newW / (n - 1);
+        var m = new float[n, n]; float maxH = 0f;
+        for (int zi = 0; zi < n; zi++)
+        {
+            float z = -newW / 2f + zi * cell;
+            int cz = Mathf.Clamp(zi - off, 0, res - 1);
+            for (int xi = 0; xi < n; xi++)
+            {
+                float x = -newW / 2f + xi * cell;
+                int cx = Mathf.Clamp(xi - off, 0, res - 1);
+                float v = h[cz, cx] * sz.y + Ramp2(z);
+                float dx = Mathf.Max(Mathf.Abs(x) - sz.x / 2f, 0f), dz = Mathf.Max(Mathf.Abs(z) - sz.z / 2f, 0f);
+                float d = Mathf.Sqrt(dx * dx + dz * dz);
+                if (d > 0f)
+                {
+                    float t = Smooth01(d / 120f);
+                    v += t * (12f + 60f * Fbm(x * 0.011f + 5f, z * 0.011f + 9f, 3)) + d * 0.10f;
+                }
+                m[zi, xi] = v; if (v > maxH) maxH = v;
+            }
+        }
+        float newY = maxH + 10f;
+        var nh = new float[n, n];
+        for (int zi = 0; zi < n; zi++) for (int xi = 0; xi < n; xi++) nh[zi, xi] = m[zi, xi] / newY;
+        td.heightmapResolution = n;
+        td.size = new Vector3(newW, newY, newW);
+        td.SetHeights(0, 0, nh);
+        int naw = aw * 2, nah = ah * 2;
+        td.alphamapResolution = naw;
+        var na = new float[nah, naw, L];
+        for (int zi = 0; zi < nah; zi++) for (int xi = 0; xi < naw; xi++) na[zi, xi, 0] = 1f;
+        for (int zi = 0; zi < ah; zi++) for (int xi = 0; xi < aw; xi++)
+            for (int l = 0; l < L; l++) na[zi + ah / 2, xi + aw / 2, l] = a[zi, xi, l];
+        td.SetAlphamaps(0, 0, na);
+    }
+
+    // sit a rock on the ground: lowest ground point under it touches the base, with a little buried so it never floats
+    static void GroundObject(Transform t, float sink)
+    {
+        var rs = t.GetComponentsInChildren<Renderer>();
+        if (rs.Length == 0) return;
+        Bounds b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
+        float ty = terrain.transform.position.y, lowest = float.MaxValue;
+        for (int i = 0; i <= 2; i++) for (int j = 0; j <= 2; j++)
+        {
+            var p = new Vector3(Mathf.Lerp(b.min.x, b.max.x, i / 2f), 0f, Mathf.Lerp(b.min.z, b.max.z, j / 2f));
+            lowest = Mathf.Min(lowest, terrain.SampleHeight(p) + ty);
+        }
+        t.position += Vector3.up * ((lowest - sink * b.size.y) - b.min.y);
+    }
+
+    [MenuItem("Tools/Mountain Environment/Climb: slope up + even scatter + better grass + far fix")]
+    public static void ClimbAll()
+    {
+        if (!BindTerrain()) return;
+        rng = new System.Random(System.Environment.TickCount);
+        var root = GameObject.Find(RootName).transform;
+        var td = terrain.terrainData;
+        float ty = terrain.transform.position.y;
+        float half = td.size.x / 2f - 12f;
+
+        // ---- 1. remember where everything built so far sits on the ground
+        EditorUtility.DisplayProgressBar("Mountain Environment", "Raising the slope...", 0.05f);
+        var units = new List<Transform>(); var oldY = new List<float>();
+        foreach (Transform g in root)
+        {
+            string n = g.name;
+            if (n == "Rocks" || n.StartsWith("Stone Wall") || n == "Camp" || n == "Fence")
+                foreach (Transform it in g)
+                {
+                    if (it.name == "Big Boulders" || it.GetComponentInChildren<Renderer>() == null) continue;
+                    units.Add(it); oldY.Add(terrain.SampleHeight(it.position) + ty);
+                }
+        }
+
+        // ---- 2. tilt the whole hill: low at the player's start, rising to the camp and wall on top
+        if (root.Find("_ClimbApplied") == null)
+        {
+            int res = td.heightmapResolution;
+            var h = td.GetHeights(0, 0, res, res);
+            Vector3 sz = td.size;
+            float newSY = sz.y + ClimbHeight + 6f;
+            for (int zi = 0; zi < res; zi++)
+            {
+                float z = -sz.z / 2f + zi / (res - 1f) * sz.z;
+                float add = ClimbRamp(z);
+                for (int xi = 0; xi < res; xi++) h[zi, xi] = (h[zi, xi] * sz.y + add) / newSY;
+            }
+            td.size = new Vector3(sz.x, newSY, sz.z);
+            td.SetHeights(0, 0, h);
+            var mk = new GameObject("_ClimbApplied"); mk.transform.SetParent(root, false);
+        }
+        // ---- 2b. bigger terrain (no visible cut-off edge) + a longer, steeper climb + mountain ridges around
+        if (root.Find("_World2Applied") == null)
+        {
+            EditorUtility.DisplayProgressBar("Mountain Environment", "Enlarging the terrain...", 0.12f);
+            Vector3 oldSize = td.size;
+            EnlargeTerrainAndSteepen(td);
+            terrain.transform.position += new Vector3(-oldSize.x / 2f, 0f, -oldSize.z / 2f);
+            var mk2 = new GameObject("_World2Applied"); mk2.transform.SetParent(root, false);
+            half = td.size.x / 2f - 12f;
+        }
+        for (int i = 0; i < units.Count; i++)
+        {
+            float ny = terrain.SampleHeight(units[i].position) + ty;
+            Undo.RecordObject(units[i], "Climb");
+            units[i].position += Vector3.up * (ny - oldY[i]);
+        }
+
+        // ---- 3. bushes: even coverage over the whole terrain
+        EditorUtility.DisplayProgressBar("Mountain Environment", "Planting bushes...", 0.3f);
+        var oldFol = root.Find("Foliage");
+        if (oldFol != null) Object.DestroyImmediate(oldFol.gameObject);
+        var fol = Group("Foliage", root);
+        var small = Group("Bushes", fol); var big = Group("Big Bushes", fol);
+        var bushes = LoadPrefabs(BushDir, nm => nm.StartsWith("P_Bush"));
+        int nb = 0, nbb = 0;
+        if (bushes.Count > 0)
+        {
+            foreach (var v in JitterGrid(19f, half, 0.85f))
+            {
+                if (!OkSpot(v.x, v.y, 4f, 12f, 38f)) continue;
+                var g = SpawnSized(bushes[rng.Next(bushes.Count)], P(v.x, v.y), Quaternion.Euler(0f, R(0f, 360f), 0f), R(1.2f, 2.2f), small);
+                if (g != null) { g.name = "Bush " + (++nb).ToString("000"); }
+            }
+            foreach (var v in JitterGrid(27f, half, 0.8f))
+            {
+                if (!OkSpot(v.x, v.y, 5f, 13f, 36f)) continue;
+                var g = SpawnSized(bushes[rng.Next(bushes.Count)], P(v.x, v.y), Quaternion.Euler(0f, R(0f, 360f), 0f), R(2.8f, 4.6f), big);
+                if (g != null) { g.name = "Big Bush " + (++nbb).ToString("000"); }
+            }
+            ConvertToURP(fol);
+        }
+
+        // ---- 4. trees: re-spread the existing ones and add more so density is the same everywhere
+        EditorUtility.DisplayProgressBar("Mountain Environment", "Spreading trees...", 0.5f);
+        var treeGrp = root.Find("Trees");
+        if (treeGrp == null) treeGrp = Group("Trees", root);
+        var oldAdded = treeGrp.Find("Added");
+        if (oldAdded != null) Object.DestroyImmediate(oldAdded.gameObject);
+        var existingTrees = new List<Transform>();
+        foreach (Transform t in treeGrp) existingTrees.Add(t);
+        var addedGrp = Group("Added", treeGrp);
+        var treePrefabs = new List<GameObject>();
+        foreach (var guid in AssetDatabase.FindAssets("t:Prefab birch", new[] { "Assets/R3DWorks" }))
+        {
+            var pf = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guid));
+            if (pf != null && pf.name.StartsWith("birch")) treePrefabs.Add(pf);
+        }
+        tropicalMats = null;
+        int ti = 0, nt = 0;
+        foreach (var v in JitterGrid(30f, half, 0.75f))
+        {
+            if (!OkSpot(v.x, v.y, 9f, 14f, 33f)) continue;
+            Transform tr = null;
+            if (ti < existingTrees.Count) tr = existingTrees[ti++];
+            else if (treePrefabs.Count > 0)
+            {
+                var g = PrefabUtility.InstantiatePrefab(treePrefabs[rng.Next(treePrefabs.Count)], addedGrp) as GameObject;
+                string nm = g.name.ToLowerInvariant();
+                g.name = (nm.Contains("big") ? "Tree Tall " : nm.Contains("medium") ? "Tree Medium " : "Tree Small ") + (++nt).ToString("00");
+                tr = g.transform;
+            }
+            if (tr == null) continue;
+            tr.position = P(v.x, v.y);
+            tr.rotation = Quaternion.Euler(0f, R(0f, 360f), 0f);
+            tr.localScale = Vector3.one * R(0.42f, 0.7f);
+            MakeTropical(tr.gameObject);
+        }
+
+        // ---- 5. big boulders, even spread, always away from the trail
+        EditorUtility.DisplayProgressBar("Mountain Environment", "Placing boulders...", 0.65f);
+        var rocksRoot = root.Find("Rocks");
+        if (rocksRoot == null) rocksRoot = Group("Rocks", root);
+        var oldB = rocksRoot.Find("Big Boulders");
+        if (oldB != null) Object.DestroyImmediate(oldB.gameObject);
+        var boulderGrp = Group("Big Boulders", rocksRoot);
+        var singles = LoadPrefabs(RockDir, nm => !nm.Contains("LOD") && !nm.Contains("grup"));
+        var groups = LoadPrefabs(RockDir, nm => nm.Contains("grup") && !nm.Contains("LOD"));
+        var rockSrc = new List<GameObject>(singles); rockSrc.AddRange(groups);
+        int nr = 0;
+        if (rockSrc.Count > 0)
+            foreach (var v in JitterGrid(62f, half, 0.6f))
+            {
+                if (!OkSpot(v.x, v.y, 28f, 26f, 42f)) continue;
+                int cluster = rng.Next(1, 4);
+                for (int c = 0; c < cluster; c++)
+                {
+                    float cx = v.x + R(-4f, 4f), cz = v.y + R(-4f, 4f);
+                    var g = SpawnSized(rockSrc[rng.Next(rockSrc.Count)], P(cx, cz), Quaternion.Euler(R(-6f, 6f), R(0f, 360f), R(-6f, 6f)), c == 0 ? R(6f, 10f) : R(3.5f, 6f), boulderGrp);
+                    if (g == null) continue;
+                    g.name = "Boulder " + (++nr).ToString("00");
+                    GroundObject(g.transform, 0.1f);
+                    foreach (var r in g.GetComponentsInChildren<Renderer>())
+                    {
+                        if (r.sharedMaterial == null) continue;
+                        var mpb = new MaterialPropertyBlock(); r.GetPropertyBlock(mpb);
+                        Color moss = new Color(1.6f, 1.9f, 1.4f, 1f);
+                        if (r.sharedMaterial.HasProperty("_BaseColor")) mpb.SetColor("_BaseColor", moss);
+                        else if (r.sharedMaterial.HasProperty("_Color")) mpb.SetColor("_Color", moss);
+                        r.SetPropertyBlock(mpb);
+                    }
+                }
+            }
+
+        // ---- 5b. every rock sits on the ground; your loose SM_LittleRock objects are tidied into Rocks/Little Rocks and spread over the terrain
+        foreach (Transform g in rocksRoot)
+        {
+            if (g.name == "Big Boulders" || g.name == "Little Rocks") continue;
+            foreach (Transform it in g) if (it.GetComponentInChildren<Renderer>() != null) GroundObject(it, 0.08f);
+            if (g.childCount == 0 && g.GetComponent<Renderer>() != null) GroundObject(g, 0.08f);
+        }
+        var oldL = rocksRoot.Find("Little Rocks");
+        Transform littleGrp = oldL != null ? oldL : Group("Little Rocks", rocksRoot);
+        foreach (var go in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
+            if (go.name.StartsWith("SM_LittleRock")) go.transform.SetParent(littleGrp, true);
+        var lspots = new List<Vector2>();
+        foreach (var v in JitterGrid(24f, half, 0.5f)) if (OkSpot(v.x, v.y, 7f, 12f, 40f)) lspots.Add(v);
+        for (int i = lspots.Count - 1; i > 0; i--) { int j = rng.Next(i + 1); var tmp = lspots[i]; lspots[i] = lspots[j]; lspots[j] = tmp; }
+        int li = 0;
+        foreach (Transform lr in littleGrp)
+        {
+            if (lspots.Count == 0) break;
+            var v = lspots[li++ % lspots.Count];
+            lr.position = P(v.x, v.y);
+            lr.rotation = Quaternion.Euler(R(-5f, 5f), R(0f, 360f), R(-5f, 5f));
+            GroundObject(lr, 0.1f);
+        }
+
+        // ---- 6. grass
+        EditorUtility.DisplayProgressBar("Mountain Environment", "Painting grass...", 0.8f);
+        RepaintGrass();
+
+        // ---- 7. far-distance rendering
+        EditorUtility.DisplayProgressBar("Mountain Environment", "Fixing far rendering...", 0.92f);
+        int lods = 0;
+        foreach (var lg in root.GetComponentsInChildren<LODGroup>(true))
+        {
+            var l = lg.GetLODs();
+            if (l.Length < 2) continue;
+            for (int i = 0; i < l.Length; i++)
+                l[i].screenRelativeTransitionHeight = (i == l.Length - 1) ? Mathf.Min(l[i].screenRelativeTransitionHeight, 0.004f) : l[i].screenRelativeTransitionHeight * 0.35f;
+            lg.SetLODs(l);
+            lods++;
+        }
+        foreach (var cam in Object.FindObjectsByType<Camera>())
+            if (cam.name == "Main Camera" && cam.farClipPlane < 2000f) { Undo.RecordObject(cam, "Far clip"); cam.farClipPlane = 2000f; }
+
+        // ---- 8. put the test player at the bottom of the climb, looking up at the camp and wall
+        var sp = root.Find("Sample Player");
+        if (sp != null)
+        {
+            float pz = -95f;
+            var pos = P(PathX(pz), pz) + Vector3.up * 0.2f;
+            Vector3 look = P(CX, CZ) - pos; look.y = 0f;
+            sp.position = pos;
+            sp.rotation = Quaternion.LookRotation(look.normalized, Vector3.up);
+        }
+
+        EditorUtility.ClearProgressBar();
+        AssetDatabase.SaveAssets();
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        Debug.Log("Mountain Environment: slope raised, " + nb + " bushes, " + nbb + " big bushes, " + (existingTrees.Count + nt) + " trees, " + nr + " boulders, grass repainted, " + lods + " LOD groups fixed for far view.");
+    }
+
+    // Fuller, patchier, greener meadow with the same grass models Level 1 uses, visible out to 250 m.
+    static void RepaintGrass()
+    {
+        var td = terrain.terrainData;
+        int aw = td.alphamapWidth, ah = td.alphamapHeight;
+        var alpha = td.GetAlphamaps(0, 0, aw, ah);
+        // use Level 1's own grass prototypes exactly as they are, so the wind animation, colours and instancing are unchanged
+        DetailPrototype[] protos = null;
+        string l1p = AssetDatabase.GUIDToAssetPath(Level1TerrainGuid);
+        var l1d = string.IsNullOrEmpty(l1p) ? null : AssetDatabase.LoadAssetAtPath<TerrainData>(l1p);
+        if (l1d != null && l1d.detailPrototypes != null && l1d.detailPrototypes.Length > 0) protos = l1d.detailPrototypes;
+        else protos = td.detailPrototypes;
+        if (protos == null || protos.Length == 0) { Debug.LogWarning("Mountain Environment: no grass prototypes on the terrain."); return; }
+        var grass = new List<int>(); var bushI = new List<int>();
+        for (int i = 0; i < protos.Length; i++)
+        {
+            bool isBush = protos[i].usePrototypeMesh && protos[i].prototype != null && protos[i].prototype.name.ToLowerInvariant().Contains("bush");
+            if (isBush) bushI.Add(i); else grass.Add(i);
+            // the grass material (Fantasy Forest/StandardNoCulling, the wind-animated one) has no GPU-instancing, so instancing must stay OFF or the blades vanish
+            protos[i].useInstancing = false;
+            protos[i].healthyColor = new Color(0.46f, 0.68f, 0.20f);
+            protos[i].dryColor = new Color(0.62f, 0.66f, 0.26f);
+            if (!isBush)
+            {
+                protos[i].minHeight = 0.8f; protos[i].maxHeight = 1.4f;
+                protos[i].minWidth = 0.9f; protos[i].maxWidth = 1.5f;
+            }
+        }
+        td.detailPrototypes = protos;
+        int dr = 1024;
+        td.SetDetailResolution(dr, 16);
+        var maps = new int[protos.Length][,];
+        for (int k = 0; k < protos.Length; k++) maps[k] = new int[dr, dr];
+        float size = td.size.x;
+        int painted = 0;
+        for (int zi = 0; zi < dr; zi++)
+        {
+            float nz = zi / (dr - 1f);
+            float z = -size / 2f + nz * size;
+            int az = Mathf.Clamp(Mathf.RoundToInt(nz * (ah - 1)), 0, ah - 1);
+            for (int xi = 0; xi < dr; xi++)
+            {
+                float nx = xi / (dr - 1f);
+                int ax = Mathf.Clamp(Mathf.RoundToInt(nx * (aw - 1)), 0, aw - 1);
+                float gw = 1f;
+                if (alpha.GetLength(2) > 1) gw -= alpha[az, ax, 1];
+                if (alpha.GetLength(2) > 2) gw -= alpha[az, ax, 2];
+                if (gw < 0.5f) continue;
+                painted++;
+                float x = -size / 2f + nx * size;
+                float clump = Fbm(x * 0.045f + 11f, z * 0.045f, 3);
+                float meadow = Mathf.Lerp(0.55f, 1.2f, clump);
+                float dens = Mathf.Lerp(3f, 7f, Fbm(x * 0.2f, z * 0.2f, 2)) * meadow * gw;
+                int d = Mathf.RoundToInt(dens);
+                if (d > 0 && grass.Count > 0) maps[grass[((xi * 7 + zi * 13) >> 1) % grass.Count]][zi, xi] = d;
+                if (bushI.Count > 0 && clump > 0.55f && gw > 0.85f && ((xi * 31 + zi * 17) % 53) == 0) maps[bushI[(xi + zi) % bushI.Count]][zi, xi] = 1;
+            }
+        }
+        for (int k = 0; k < protos.Length; k++) td.SetDetailLayer(0, 0, k, maps[k]);
+        terrain.detailObjectDistance = 200f;
+        terrain.detailObjectDensity = 1f;
+        terrain.heightmapPixelError = 3f;
+        terrain.basemapDistance = 1500f;
+        terrain.drawInstanced = true;
+        EditorUtility.SetDirty(td);
+        Debug.Log("Mountain Environment: grass painted on " + painted + " cells, " + grass.Count + " grass + " + bushI.Count + " bush prototypes, layers=" + alpha.GetLength(2));
+    }
+
+    // Adds (never removes or moves anything) bushes, trees and small rocks wherever the terrain still has a big empty gap.
+    [MenuItem("Tools/Mountain Environment/Fill empty areas (add only)")]
+    public static void FillEmptyAreas()
+    {
+        if (!BindTerrain()) return;
+        rng = new System.Random(System.Environment.TickCount);
+        var root = GameObject.Find(RootName).transform;
+        var td = terrain.terrainData;
+        float half = td.size.x / 2f - 12f;
+        const float gap = 12f, hc = 12f;
+
+        // everything already standing in the scene (by position) counts as occupied
+        var occ = new Dictionary<long, List<Vector2>>();
+        System.Action<float, float> add = (x, z) =>
+        {
+            long key = ((long)Mathf.FloorToInt(x / hc) << 32) ^ (long)(uint)Mathf.FloorToInt(z / hc);
+            List<Vector2> l; if (!occ.TryGetValue(key, out l)) { l = new List<Vector2>(); occ[key] = l; }
+            l.Add(new Vector2(x, z));
+        };
+        System.Func<float, float, bool> free = (x, z) =>
+        {
+            int cx = Mathf.FloorToInt(x / hc), cz = Mathf.FloorToInt(z / hc);
+            for (int i = -1; i <= 1; i++) for (int j = -1; j <= 1; j++)
+            {
+                List<Vector2> l;
+                if (!occ.TryGetValue(((long)(cx + i) << 32) ^ (long)(uint)(cz + j), out l)) continue;
+                foreach (var q in l) if ((q.x - x) * (q.x - x) + (q.y - z) * (q.y - z) < gap * gap) return false;
+            }
+            return true;
+        };
+        foreach (var r in root.GetComponentsInChildren<Renderer>())
+        {
+            var c = r.bounds.center; add(c.x - originX, c.z);
+        }
+        foreach (var go in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
+            if (go.name.StartsWith("SM_LittleRock")) add(go.transform.position.x - originX, go.transform.position.z);
+
+        var bushes = LoadPrefabs(BushDir, nm => nm.StartsWith("P_Bush"));
+        var treePrefabs = new List<GameObject>();
+        foreach (var guid in AssetDatabase.FindAssets("t:Prefab birch", new[] { "Assets/R3DWorks" }))
+        {
+            var pf = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guid));
+            if (pf != null && pf.name.StartsWith("birch")) treePrefabs.Add(pf);
+        }
+        var rockSrc = LoadPrefabs(RockDir, nm => !nm.Contains("LOD") && !nm.Contains("grup"));
+
+        var fol = root.Find("Foliage") != null ? root.Find("Foliage") : Group("Foliage", root);
+        var treeRoot = root.Find("Trees") != null ? root.Find("Trees") : Group("Trees", root);
+        var rockRoot = root.Find("Rocks") != null ? root.Find("Rocks") : Group("Rocks", root);
+        Transform fb = fol.Find("Filler Bushes") ?? Group("Filler Bushes", fol);
+        Transform fbb = fol.Find("Filler Big Bushes") ?? Group("Filler Big Bushes", fol);
+        Transform ft = treeRoot.Find("Filler") ?? Group("Filler", treeRoot);
+        Transform fr = rockRoot.Find("Filler Rocks") ?? Group("Filler Rocks", rockRoot);
+        tropicalMats = null;
+
+        var cands = JitterGrid(8f, half, 1f);
+        for (int i = cands.Count - 1; i > 0; i--) { int j = rng.Next(i + 1); var t = cands[i]; cands[i] = cands[j]; cands[j] = t; }
+        int nb = 0, nbb = 0, nt = 0, nr = 0;
+        for (int ci = 0; ci < cands.Count; ci++)
+        {
+            var v = cands[ci];
+            if (!free(v.x, v.y) || !OkSpot(v.x, v.y, 5f, 12f, 38f)) continue;
+            float roll = R();
+            Vector3 pos = P(v.x, v.y);
+            Quaternion rot = Quaternion.Euler(0f, R(0f, 360f), 0f);
+            if (roll < 0.40f && bushes.Count > 0)
+            {
+                var g = SpawnSized(bushes[rng.Next(bushes.Count)], pos, rot, R(1.3f, 2.3f), fb);
+                if (g == null) continue; g.name = "Filler Bush " + (++nb).ToString("000"); ConvertToURP(g.transform);
+            }
+            else if (roll < 0.62f && bushes.Count > 0)
+            {
+                var g = SpawnSized(bushes[rng.Next(bushes.Count)], pos, rot, R(2.8f, 4.6f), fbb);
+                if (g == null) continue; g.name = "Filler Big Bush " + (++nbb).ToString("000"); ConvertToURP(g.transform);
+            }
+            else if (roll < 0.88f && treePrefabs.Count > 0)
+            {
+                var g = PrefabUtility.InstantiatePrefab(treePrefabs[rng.Next(treePrefabs.Count)], ft) as GameObject;
+                if (g == null) continue;
+                g.name = "Filler Tree " + (++nt).ToString("000");
+                g.transform.position = pos; g.transform.rotation = rot; g.transform.localScale = Vector3.one * R(0.42f, 0.7f);
+                MakeTropical(g);
+            }
+            else if (rockSrc.Count > 0)
+            {
+                var g = SpawnSized(rockSrc[rng.Next(rockSrc.Count)], pos, Quaternion.Euler(R(-5f, 5f), R(0f, 360f), R(-5f, 5f)), R(2.5f, 4.5f), fr);
+                if (g == null) continue; g.name = "Filler Rock " + (++nr).ToString("000"); GroundObject(g.transform, 0.1f);
+            }
+            else continue;
+            add(v.x, v.y);
+        }
+        AssetDatabase.SaveAssets();
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        Debug.Log("Mountain Environment: filled empty areas, added " + nb + " bushes, " + nbb + " big bushes, " + nt + " trees, " + nr + " rocks (nothing removed).");
+    }
+
+    [MenuItem("Tools/Mountain Environment/Repaint grass only")]
+    public static void RepaintGrassOnly()
+    {
+        if (!BindTerrain()) return;
+        RepaintGrass();
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
     }
 
     [MenuItem("Tools/Mountain Environment/Remove test player (restore Pinoy)")]
