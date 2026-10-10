@@ -89,9 +89,15 @@ public class FirstPersonController : MonoBehaviour
     private bool isReloading = false;
 
     [Header("Aiming (ADS) & Sway")]
+    [Tooltip("The transform the AIM/SWAY movement is applied to. This must NOT be the same GameObject as the weapon Animator - if it is, the Animator and this script fight over localPosition and the weapon sinks. Make an empty parent 'AimHolder' between the weapon holder and the animated weapon, put the weapon (with its Animator) as its child, and assign the AimHolder here. If left empty, falls back to weaponTransform (the old, buggy behaviour).")]
+    [SerializeField] private Transform aimHolder;
+    [Tooltip("The animated weapon object (has the Animator). Activated/deactivated on pickup. Its OWN localPosition is left entirely to the Animator now.")]
     [SerializeField] private Transform weaponTransform;
     [SerializeField] private Vector3 hipFirePosition;
     [SerializeField] private Vector3 aimPosition;
+    [Tooltip("Logs the weapon's local position each time you start/stop aiming, to diagnose position drift. Turn off once fixed.")]
+    [SerializeField] private bool debugAimLogging = false;
+    private bool wasAimingLastFrame = false;
     [SerializeField] private float aimSpeed = 10f;
 
     [Header("Mouse Sway")]
@@ -148,6 +154,15 @@ public class FirstPersonController : MonoBehaviour
     [SerializeField] private TMP_Text respawnTimerText;
     [SerializeField] private AudioLowPassFilter audioLowPassFilter;
     [SerializeField] private float muffledCutoffFrequency = 800f;
+
+    [Header("Respawn / Game Over")]
+    [Tooltip("How many times the player may respawn before a death triggers the lose sequence. 1 = first death respawns, second death is game over.")]
+    [SerializeField] private int allowedRespawns = 1;
+    [Tooltip("Seconds the death screen holds on the FINAL death before the lose sequence takes over.")]
+    [SerializeField] private float finalDeathHold = 1.5f;
+    [Tooltip("The scene's GameOutcomeManager, used to play the lose sequence on the final death. Found automatically if left empty.")]
+    [SerializeField] private GameOutcomeManager outcomeManager;
+    private int deathCount = 0;
     [SerializeField] private float normalCutoffFrequency = 22000f;
 
     [Header("Death Audio")]
@@ -605,9 +620,22 @@ public class FirstPersonController : MonoBehaviour
 
     private void HandleAimingAndSway()
     {
-        if (weaponTransform == null) return;
+        // Apply aim/sway to the holder, NOT the animated weapon. If both this script and the
+        // Animator write the same transform's localPosition, they fight and the weapon drifts
+        // downward. aimHolder should be a parent of the animated weapon; the Animator then owns
+        // the weapon's own localPosition and this owns the holder's. Fall back to weaponTransform
+        // only if no holder is assigned (preserves old behaviour rather than doing nothing).
+        Transform moveTarget = aimHolder != null ? aimHolder : weaponTransform;
+        if (moveTarget == null) return;
 
         bool isAiming = Input.GetButton("Fire2") && !isReloading;
+
+        if (debugAimLogging && isAiming != wasAimingLastFrame)
+        {
+            Debug.Log($"[Aim] {(isAiming ? "START" : "STOP")} aim. moveTarget.localPosition = {moveTarget.localPosition} | aimPosition={aimPosition} hipFirePosition={hipFirePosition}", this);
+            wasAimingLastFrame = isAiming;
+        }
+
         Vector3 baseTargetPosition = isAiming ? aimPosition : hipFirePosition;
 
         float currentSwayMultiplier = isAiming ? aimSwayMultiplier : 1f;
@@ -625,7 +653,7 @@ public class FirstPersonController : MonoBehaviour
 
         Vector3 targetPosition = baseTargetPosition + new Vector3(swayX + driftX, swayY + driftY, 0f);
 
-        weaponTransform.localPosition = Vector3.Lerp(weaponTransform.localPosition, targetPosition, Time.deltaTime * aimSpeed);
+        moveTarget.localPosition = Vector3.Lerp(moveTarget.localPosition, targetPosition, Time.deltaTime * aimSpeed);
     }
 
     private void HandleShootingAndReloading()
@@ -848,8 +876,30 @@ public class FirstPersonController : MonoBehaviour
     {
         isDead = true;
         isReloading = false;
+        deathCount++;
 
         ShowDeathScreen();
+
+        // Out of respawns -> this is game over. Hold the death screen briefly so the death reads,
+        // then hand off to the outcome manager's lose sequence (typewriter + menu). We do NOT
+        // respawn or clear isDead - the player stays down and control never returns.
+        if (deathCount > allowedRespawns)
+        {
+            if (outcomeManager == null) outcomeManager = FindObjectOfType<GameOutcomeManager>();
+
+            yield return new WaitForSeconds(finalDeathHold);
+
+            if (outcomeManager != null)
+            {
+                HideDeathScreen(); // the lose sequence draws its own black + text
+                outcomeManager.TriggerLose();
+            }
+            else
+            {
+                Debug.LogWarning("[FirstPersonController] No GameOutcomeManager found - can't play lose sequence on final death. Player will just stay on the death screen.", this);
+            }
+            yield break;
+        }
 
         float timer = respawnDelay;
         while (timer > 0f)

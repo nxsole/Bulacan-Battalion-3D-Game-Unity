@@ -355,8 +355,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 7600018134875333996}
   - {fileID: 4189781823122151158}
+  - {fileID: 1804160404404424793}
   m_Father: {fileID: 1725168981817358525}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!20 &6206297973126095744
@@ -626,6 +626,38 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &6264681091640503020
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1804160404404424793}
+  m_Layer: 7
+  m_Name: Aim Holder
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1804160404404424793
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6264681091640503020}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 7600018134875333996}
+  m_Father: {fileID: 5443904202431148117}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6641724785228712211
 GameObject:
   m_ObjectHideFlags: 0
@@ -1093,9 +1125,11 @@ MonoBehaviour:
   maxAmmo: 1
   weaponRange: 100
   reloadDuration: 2.4
+  aimHolder: {fileID: 0}
   weaponTransform: {fileID: 7600018134875333996}
   hipFirePosition: {x: 0, y: -1.67, z: 0.16}
   aimPosition: {x: -0.094, y: -1.58, z: 0}
+  debugAimLogging: 0
   aimSpeed: 10
   swayAmount: 0.01
   maxSwayAmount: 0.02
@@ -1130,6 +1164,9 @@ MonoBehaviour:
   respawnTimerText: {fileID: 1800358438828011861}
   audioLowPassFilter: {fileID: 7257356517727932950}
   muffledCutoffFrequency: 500
+  allowedRespawns: 1
+  finalDeathHold: 1.5
+  outcomeManager: {fileID: 0}
   normalCutoffFrequency: 22000
   deathAudioSource: {fileID: 6372255278744020772}
   deathSoundClip: {fileID: 8300000, guid: 2400161180002864dbe3ad01e97db528, type: 3}
@@ -1276,7 +1313,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 5443904202431148117}
+    m_TransformParent: {fileID: 1804160404404424793}
     m_Modifications:
     - target: {fileID: -9136715335096925758, guid: 2aa0b5251e3e379498bd2c4b1d2582e9, type: 3}
       propertyPath: m_Layer
@@ -1292,7 +1329,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 2aa0b5251e3e379498bd2c4b1d2582e9, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.16
+      value: 0.15999739
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 2aa0b5251e3e379498bd2c4b1d2582e9, type: 3}
       propertyPath: m_LocalRotation.w
@@ -1304,11 +1341,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 2aa0b5251e3e379498bd2c4b1d2582e9, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 2aa0b5251e3e379498bd2c4b1d2582e9, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -4.656613e-10
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 2aa0b5251e3e379498bd2c4b1d2582e9, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
