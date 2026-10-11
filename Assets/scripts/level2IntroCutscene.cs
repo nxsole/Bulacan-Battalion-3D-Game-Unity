@@ -90,8 +90,15 @@ namespace TiradPass
 
         private void Awake()
         {
+            // Unlock mouse cursor for UI interaction
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+
             if (skipButton != null)
+            {
+                skipButton.onClick.RemoveAllListeners();
                 skipButton.onClick.AddListener(SkipCutscene);
+            }
 
             if (dialogueCanvasGroup != null)
                 dialogueCanvasGroup.alpha = 0f;
@@ -120,7 +127,23 @@ namespace TiradPass
 
         private void Update()
         {
-            if (isCutsceneActive && mainCamera != null && currentCameraTarget != null)
+            if (!isCutsceneActive) return;
+
+            // Keep cursor unlocked throughout cutscene execution
+            if (Cursor.lockState != CursorLockMode.None)
+            {
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+            }
+
+            // Keyboard shortcut support: Press Space, Escape, or Enter to Skip
+            if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.Return))
+            {
+                SkipCutscene();
+            }
+
+            // Smooth camera movement
+            if (mainCamera != null && currentCameraTarget != null)
             {
                 mainCamera.transform.position = Vector3.Lerp(
                     mainCamera.transform.position,
@@ -175,13 +198,11 @@ namespace TiradPass
                 currentMoveSpeed = 0.5f;
                 currentRotateSpeed = 0.5f;
 
-                // Fade in from black over opening shot
                 if (screenFadeCanvasGroup != null)
                     StartCoroutine(FadeCanvasGroup(screenFadeCanvasGroup, 1.0f, 0.0f, 1.2f));
 
                 yield return new WaitForSeconds(openingZoomDuration);
 
-                // Fade out to black after opening horizon shot
                 if (screenFadeCanvasGroup != null)
                     yield return StartCoroutine(FadeCanvasGroup(screenFadeCanvasGroup, 0.0f, 1.0f, 0.8f));
             }
@@ -206,7 +227,6 @@ namespace TiradPass
                 currentMoveSpeed = line.customMoveSpeed > 0 ? line.customMoveSpeed : cameraMoveSpeed;
                 currentRotateSpeed = line.customRotateSpeed > 0 ? line.customRotateSpeed : cameraRotateSpeed;
 
-                // Fade back in on Mateo's line after black screen transition
                 if (i == 0 && screenFadeCanvasGroup != null && screenFadeCanvasGroup.alpha > 0.1f)
                 {
                     yield return StartCoroutine(FadeCanvasGroup(screenFadeCanvasGroup, 1.0f, 0.0f, 0.8f));
@@ -247,28 +267,23 @@ namespace TiradPass
         {
             if (isSkipping) yield break;
 
-            // Fade Dialogue UI Out
             if (dialogueCanvasGroup != null)
                 StartCoroutine(FadeCanvasGroup(dialogueCanvasGroup, dialogueCanvasGroup.alpha, 0.0f, 0.5f));
 
-            // Fade Screen to Black
             if (screenFadeCanvasGroup != null)
                 yield return StartCoroutine(FadeCanvasGroup(screenFadeCanvasGroup, 0.0f, 1.0f, 0.6f));
 
-            // Snap camera to Americans camera target behind black screen
             if (americansCamTarget != null)
             {
                 SnapCameraToTarget(americansCamTarget);
                 currentCameraTarget = americansCamTarget;
             }
 
-            // Enable Americans (Triggers Animator running clip automatically)
             if (americansRunningObject != null)
             {
                 americansRunningObject.SetActive(true);
             }
 
-            // Play ambient/running sound if attached
             if (americansRunningAudio != null && !americansRunningAudio.isPlaying)
             {
                 americansRunningAudio.Play();
@@ -276,11 +291,9 @@ namespace TiradPass
 
             yield return new WaitForSeconds(0.2f);
 
-            // Fade Screen Back In from Black
             if (screenFadeCanvasGroup != null)
                 yield return StartCoroutine(FadeCanvasGroup(screenFadeCanvasGroup, 1.0f, 0.0f, 0.6f));
 
-            // Show shot of approaching Americans for configured duration
             yield return new WaitForSeconds(americansShotDuration);
         }
 
@@ -307,11 +320,9 @@ namespace TiradPass
 
         private IEnumerator EndCutsceneAndTransitionScene()
         {
-            // Ensure dialogue UI is hidden
             if (dialogueCanvasGroup != null)
                 StartCoroutine(FadeCanvasGroup(dialogueCanvasGroup, dialogueCanvasGroup.alpha, 0.0f, 0.3f));
 
-            // Smoothly fade screen to solid black
             if (screenFadeCanvasGroup != null && screenFadeCanvasGroup.alpha < 0.99f)
                 yield return StartCoroutine(FadeCanvasGroup(screenFadeCanvasGroup, screenFadeCanvasGroup.alpha, 1.0f, 0.8f));
 
@@ -319,7 +330,6 @@ namespace TiradPass
 
             isCutsceneActive = false;
 
-            // Load separate gameplay scene if assigned
             if (!string.IsNullOrEmpty(nextSceneName))
             {
                 SceneManager.LoadScene(nextSceneName);
