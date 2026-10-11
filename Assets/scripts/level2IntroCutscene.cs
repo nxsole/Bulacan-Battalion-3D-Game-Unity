@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using TMPro;
 
 namespace TiradPass
@@ -28,12 +29,15 @@ namespace TiradPass
     {
         [Header("Camera & UI References")]
         [SerializeField] private Camera mainCamera;
-        [SerializeField] private GameObject playerObject; // Drag your Player object / FirstPersonController here
         [SerializeField] private TextMeshProUGUI speakerNameText;
         [SerializeField] private TextMeshProUGUI dialogueContentText;
         [SerializeField] private CanvasGroup dialogueCanvasGroup;
         [SerializeField] private CanvasGroup screenFadeCanvasGroup;
         [SerializeField] private Button skipButton;
+
+        [Header("Next Scene Settings")]
+        [Tooltip("Type the exact name of your Level 2 Gameplay Scene here")]
+        [SerializeField] private string nextSceneName = "Level2_Gameplay";
 
         [Header("Camera Movement Settings")]
         [SerializeField] private float cameraMoveSpeed = 2.0f;
@@ -46,18 +50,28 @@ namespace TiradPass
         [SerializeField] private Transform openingHorizonTarget;
         [SerializeField] private float openingZoomDuration = 3.0f;
 
+        [Header("Cutscene Actors")]
+        [Tooltip("Drag your americansRunning parent GameObject here")]
+        [SerializeField] private GameObject americansRunningObject;
+
         [Header("Audio Sources")]
         [SerializeField] private AudioSource backgroundAmbienceSource;
         [SerializeField] private AudioSource dialogueVoiceSource;
+        [SerializeField] private AudioSource americansRunningAudio;
         [SerializeField] private float audioFadeDuration = 1.5f;
 
         [Header("Dialogue Timing Settings")]
         [SerializeField] private float textTypingSpeed = 0.035f;
 
         [Header("Camera Targets")]
-        [SerializeField] private Transform mateoCamTarget;        // Shot 2 & 4: Mateo
-        [SerializeField] private Transform goyoCamTarget;         // Shot 2: General Goyo
-        [SerializeField] private Transform sundaloCamTarget;      // Shot 3: Warning Soldier
+        [SerializeField] private Transform mateoCamTarget;        // Mateo Shot
+        [SerializeField] private Transform goyoCamTarget;         // General Goyo Shot
+        [SerializeField] private Transform sundaloCamTarget;      // Warning Soldier Shot
+        [SerializeField] private Transform americansCamTarget;    // Americans Running Shot (Ending Shot)
+
+        [Header("Americans Ending Shot Timing")]
+        [Tooltip("How many seconds to show the Americans running shot before fading to black")]
+        [SerializeField] private float americansShotDuration = 3.5f;
 
         [Header("Dialogue Sequence")]
         [SerializeField] private List<Level2DialogueLine> dialogueSequence = new List<Level2DialogueLine>();
@@ -82,16 +96,20 @@ namespace TiradPass
             if (dialogueCanvasGroup != null)
                 dialogueCanvasGroup.alpha = 0f;
 
+            // Start screen fully black at the very beginning
+            if (screenFadeCanvasGroup != null)
+                screenFadeCanvasGroup.alpha = 1f;
+
+            // Ensure americans object is hidden until ending shot
+            if (americansRunningObject != null)
+            {
+                americansRunningObject.SetActive(false);
+            }
+
             // Snap camera directly to opening start position
             if (mainCamera != null && openingStartTarget != null)
             {
                 SnapCameraToTarget(openingStartTarget);
-            }
-
-            // Disable player control during cutscene
-            if (playerObject != null)
-            {
-                playerObject.SetActive(false);
             }
         }
 
@@ -130,13 +148,11 @@ namespace TiradPass
         {
             dialogueSequence = new List<Level2DialogueLine>
             {
-                // First line set with instantCut = true to jump straight to Mateo after the opening shot
                 new Level2DialogueLine { speakerName = "MATEO", speakerColor = colorMateo, dialogueText = "Heneral, papalapit na ang mga Amerikano. Sa tingin ninyo, kaya natin silang pigilan?", cameraTarget = mateoCamTarget, delayAfterLine = 1.0f, instantCut = true },
                 new Level2DialogueLine { speakerName = "GOYO", speakerColor = colorGoyo, dialogueText = "Maaaring mas marami sila sa atin, Mateo. Ngunit ang makitid na daanang ito ang ating kalamangan.", cameraTarget = goyoCamTarget, delayAfterLine = 1.0f },
                 new Level2DialogueLine { speakerName = "MATEO", speakerColor = colorMateo, dialogueText = "Paano po kung makalusot sila?", cameraTarget = mateoCamTarget, delayAfterLine = 1.0f },
                 new Level2DialogueLine { speakerName = "GOYO", speakerColor = colorGoyo, dialogueText = "Lalaban tayo hanggang sa huli. Bawat sandaling mapigilan natin sila ay pagkakataon.", cameraTarget = goyoCamTarget, delayAfterLine = 1.0f },
-                new Level2DialogueLine { speakerName = "SUNDALO", speakerColor = colorSundalo, dialogueText = "Heneral! Paparating na ang mga Amerikano!", cameraTarget = sundaloCamTarget, delayAfterLine = 1.0f },
-                new Level2DialogueLine { speakerName = "GOYO", speakerColor = colorGoyo, dialogueText = "Mga kawal! Sa inyong mga puwesto! Hindi natin hahayaang makalusot ang kalaban!", cameraTarget = goyoCamTarget, delayAfterLine = 1.5f }
+                new Level2DialogueLine { speakerName = "SUNDALO", speakerColor = colorSundalo, dialogueText = "Heneral! Paparating na ang mga Amerikano!", cameraTarget = sundaloCamTarget, delayAfterLine = 1.0f }
             };
 
             Debug.Log("Level 2 Dialogue Sequence Auto-Filled Successfully!");
@@ -151,20 +167,28 @@ namespace TiradPass
 
         private IEnumerator RunLevel2CutsceneFlow()
         {
-            // 1. OPENING SHOT: Smoothly zoom out toward the horizon
+            // 1. OPENING SHOT: Fade in from black & Zoom out toward horizon
             if (openingStartTarget != null && openingHorizonTarget != null)
             {
                 SnapCameraToTarget(openingStartTarget);
                 currentCameraTarget = openingHorizonTarget;
-                currentMoveSpeed = 0.5f; // Slow cinematic lerp
+                currentMoveSpeed = 0.5f;
                 currentRotateSpeed = 0.5f;
 
+                // Fade in from black over opening shot
+                if (screenFadeCanvasGroup != null)
+                    StartCoroutine(FadeCanvasGroup(screenFadeCanvasGroup, 1.0f, 0.0f, 1.2f));
+
                 yield return new WaitForSeconds(openingZoomDuration);
+
+                // Fade out to black after opening horizon shot
+                if (screenFadeCanvasGroup != null)
+                    yield return StartCoroutine(FadeCanvasGroup(screenFadeCanvasGroup, 0.0f, 1.0f, 0.8f));
             }
 
             // 2. DIALOGUE UI FADE IN
             if (dialogueCanvasGroup != null)
-                yield return StartCoroutine(FadeCanvasGroup(dialogueCanvasGroup, 0.0f, 1.0f, 0.8f));
+                StartCoroutine(FadeCanvasGroup(dialogueCanvasGroup, 0.0f, 1.0f, 0.8f));
 
             // 3. DIALOGUE SEQUENCE
             for (int i = 0; i < dialogueSequence.Count; i++)
@@ -173,7 +197,6 @@ namespace TiradPass
 
                 Level2DialogueLine line = dialogueSequence[i];
 
-                // If instantCut is enabled on this line, snap camera instantly before lerping
                 if (line.instantCut && line.cameraTarget != null)
                 {
                     SnapCameraToTarget(line.cameraTarget);
@@ -182,6 +205,12 @@ namespace TiradPass
                 currentCameraTarget = line.cameraTarget;
                 currentMoveSpeed = line.customMoveSpeed > 0 ? line.customMoveSpeed : cameraMoveSpeed;
                 currentRotateSpeed = line.customRotateSpeed > 0 ? line.customRotateSpeed : cameraRotateSpeed;
+
+                // Fade back in on Mateo's line after black screen transition
+                if (i == 0 && screenFadeCanvasGroup != null && screenFadeCanvasGroup.alpha > 0.1f)
+                {
+                    yield return StartCoroutine(FadeCanvasGroup(screenFadeCanvasGroup, 1.0f, 0.0f, 0.8f));
+                }
 
                 if (speakerNameText != null)
                 {
@@ -207,7 +236,52 @@ namespace TiradPass
                 yield return new WaitForSeconds(line.delayAfterLine);
             }
 
-            yield return EndCutsceneAndStartGameplay();
+            // 4. TRANSITION TO AMERICANS RUNNING SHOT
+            yield return ShowAmericansEndingShot();
+
+            // 5. TRANSITION TO GAMEPLAY SCENE
+            yield return EndCutsceneAndTransitionScene();
+        }
+
+        private IEnumerator ShowAmericansEndingShot()
+        {
+            if (isSkipping) yield break;
+
+            // Fade Dialogue UI Out
+            if (dialogueCanvasGroup != null)
+                StartCoroutine(FadeCanvasGroup(dialogueCanvasGroup, dialogueCanvasGroup.alpha, 0.0f, 0.5f));
+
+            // Fade Screen to Black
+            if (screenFadeCanvasGroup != null)
+                yield return StartCoroutine(FadeCanvasGroup(screenFadeCanvasGroup, 0.0f, 1.0f, 0.6f));
+
+            // Snap camera to Americans camera target behind black screen
+            if (americansCamTarget != null)
+            {
+                SnapCameraToTarget(americansCamTarget);
+                currentCameraTarget = americansCamTarget;
+            }
+
+            // Enable Americans (Triggers Animator running clip automatically)
+            if (americansRunningObject != null)
+            {
+                americansRunningObject.SetActive(true);
+            }
+
+            // Play ambient/running sound if attached
+            if (americansRunningAudio != null && !americansRunningAudio.isPlaying)
+            {
+                americansRunningAudio.Play();
+            }
+
+            yield return new WaitForSeconds(0.2f);
+
+            // Fade Screen Back In from Black
+            if (screenFadeCanvasGroup != null)
+                yield return StartCoroutine(FadeCanvasGroup(screenFadeCanvasGroup, 1.0f, 0.0f, 0.6f));
+
+            // Show shot of approaching Americans for configured duration
+            yield return new WaitForSeconds(americansShotDuration);
         }
 
         private IEnumerator TypeWriterText(string fullText)
@@ -228,36 +302,28 @@ namespace TiradPass
             isSkipping = true;
             StopAllCoroutines();
             if (dialogueVoiceSource != null) dialogueVoiceSource.Stop();
-            StartCoroutine(EndCutsceneAndStartGameplay());
+            StartCoroutine(EndCutsceneAndTransitionScene());
         }
 
-        private IEnumerator EndCutsceneAndStartGameplay()
+        private IEnumerator EndCutsceneAndTransitionScene()
         {
+            // Ensure dialogue UI is hidden
             if (dialogueCanvasGroup != null)
-                StartCoroutine(FadeCanvasGroup(dialogueCanvasGroup, dialogueCanvasGroup.alpha, 0.0f, 0.5f));
+                StartCoroutine(FadeCanvasGroup(dialogueCanvasGroup, dialogueCanvasGroup.alpha, 0.0f, 0.3f));
 
-            // Instantly snap back to Mateo's view for gameplay handover
-            if (mateoCamTarget != null)
-            {
-                SnapCameraToTarget(mateoCamTarget);
-            }
+            // Smoothly fade screen to solid black
+            if (screenFadeCanvasGroup != null && screenFadeCanvasGroup.alpha < 0.99f)
+                yield return StartCoroutine(FadeCanvasGroup(screenFadeCanvasGroup, screenFadeCanvasGroup.alpha, 1.0f, 0.8f));
 
-            yield return new WaitForSeconds(0.3f);
-
-            // Enable player for gameplay control
-            if (playerObject != null)
-            {
-                playerObject.SetActive(true);
-            }
-
-            // Lock mouse cursor for FPS gameplay
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
+            yield return new WaitForSeconds(0.5f);
 
             isCutsceneActive = false;
 
-            // Turn off cutscene GameObject
-            gameObject.SetActive(false);
+            // Load separate gameplay scene if assigned
+            if (!string.IsNullOrEmpty(nextSceneName))
+            {
+                SceneManager.LoadScene(nextSceneName);
+            }
         }
 
         private IEnumerator FadeCanvasGroup(CanvasGroup cg, float startAlpha, float endAlpha, float duration)
