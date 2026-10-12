@@ -15,9 +15,33 @@ public static class GoyoLastStandShotSetup
             var scene = SceneManager.GetActiveScene();
             if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling
                 || scene.path != "Assets/Scenes/Level 2 Ending Cutscene.unity") return;
-            if (scene.GetRootGameObjects().Any(r => r.GetComponentInChildren<GoyoLastStandShot>(true) != null)) return;
-            Configure();
+            if (!scene.GetRootGameObjects().Any(r => r.GetComponentInChildren<GoyoLastStandShot>(true) != null)) return;
+            SwitchToEnding();
         };
+    }
+
+    [MenuItem("Tools/Tirad Pass/Play Ending Cutscene Instead")]
+    public static void SwitchToEnding()
+    {
+        var scene = SceneManager.GetActiveScene();
+        if (EditorApplication.isPlayingOrWillChangePlaymode || scene.path != "Assets/Scenes/Level 2 Ending Cutscene.unity") return;
+        var all = scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<Transform>(true)).ToArray();
+        var ending = all.Select(t => t.GetComponent<Level2EndingCutscene>()).FirstOrDefault(c => c != null);
+        if (ending == null) { Debug.LogError("EndingCutscene controller is missing; no changes made."); return; }
+        foreach (var shot in all.Select(t => t.GetComponent<GoyoLastStandShot>()).Where(c => c != null).ToArray())
+            Undo.DestroyObjectImmediate(shot.gameObject);
+        Undo.RecordObject(ending, "Enable EndingCutscene");
+        ending.enabled = true;
+        for (var parent = ending.transform; parent != null; parent = parent.parent)
+        {
+            Undo.RecordObject(parent.gameObject, "Activate EndingCutscene");
+            parent.gameObject.SetActive(true);
+        }
+        EditorUtility.SetDirty(ending);
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Selection.activeGameObject = ending.gameObject;
+        Debug.Log("Tracking-shot object removed; EndingCutscene enabled and saved. Press Play to run the ending.", ending);
     }
 
     [MenuItem("Tools/Tirad Pass/Set Up Goyo Tracking Shot")]

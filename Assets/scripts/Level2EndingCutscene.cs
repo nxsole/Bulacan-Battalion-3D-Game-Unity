@@ -11,27 +11,19 @@ namespace TiradPass
     {
         [Header("Camera References")]
         [SerializeField] private Camera mainCamera;
-        [SerializeField] private float cameraMoveSpeed = 2.0f;
-        [SerializeField] private float cameraRotateSpeed = 2.0f;
+        [SerializeField] private float cameraMoveSpeed = 0.8f;
 
         [Header("Camera Targets")]
-        [Tooltip("Shot focusing on Goyo and soldiers firing behind barricades")]
-        [SerializeField] private Transform barricadeFiringCamTarget;
-        [Tooltip("Shot focusing on Goyo getting hit and falling down")]
-        [SerializeField] private Transform goyoFallCamTarget;
-        [Tooltip("Shot directed up at the sky during hit/fall transition")]
+        [Tooltip("Start shot close to barricade looking over the fallen defenders")]
+        [SerializeField] private Transform soldierStartCamTarget;
+        [Tooltip("Distant target for the smooth zoom-out movement")]
+        [SerializeField] private Transform zoomOutCamTarget;
+        [Tooltip("Target looking directly up toward the sky")]
         [SerializeField] private Transform skyTiltCamTarget;
-        [Tooltip("Wide static shot looking across the quiet, foggy pass")]
-        [SerializeField] private Transform aftermathCamTarget;
-
-        [Header("Actors & Animators")]
-        [SerializeField] private Animator goyoAnimator;
-        [SerializeField] private List<Animator> soldierAnimators = new List<Animator>();
-        [SerializeField] private List<GameObject> soldierObjects = new List<GameObject>();
 
         [Header("UI Canvas Groups & Overlays")]
         [SerializeField] private CanvasGroup screenFadeCanvasGroup;
-        [SerializeField] private Image screenFadeImage; // Assign scenefade Image component
+        [SerializeField] private Image screenFadeImage;
         [SerializeField] private CanvasGroup historicalTextCanvasGroup;
         [SerializeField] private CanvasGroup levelCompleteCanvasGroup;
 
@@ -42,7 +34,6 @@ namespace TiradPass
         [Header("Audio Sources")]
         [SerializeField] private AudioSource battleAmbienceSource;
         [SerializeField] private AudioSource windAmbienceSource;
-        [SerializeField] private AudioSource singleGunshotAudio;
 
         [Header("Scene Transition Settings")]
         [SerializeField] private string mainMenuSceneName = "main menu";
@@ -52,13 +43,14 @@ namespace TiradPass
 
         private void Awake()
         {
-            // Reset UI states
             if (historicalTextCanvasGroup != null) historicalTextCanvasGroup.alpha = 0f;
             if (levelCompleteCanvasGroup != null) levelCompleteCanvasGroup.alpha = 0f;
-            if (screenFadeCanvasGroup != null) screenFadeCanvasGroup.alpha = 0f;
 
-            // Make sure fade image starts white for sky transition setup
-            if (screenFadeImage != null) screenFadeImage.color = Color.white;
+            // Set fade overlay color strictly to Black
+            if (screenFadeImage != null) screenFadeImage.color = Color.black;
+
+            // Start full black at Awake for initial fade-in
+            if (screenFadeCanvasGroup != null) screenFadeCanvasGroup.alpha = 1f;
         }
 
         private void Start()
@@ -68,6 +60,7 @@ namespace TiradPass
 
         private void Update()
         {
+            // Smooth continuous interpolation between camera targets
             if (isCutsceneActive && mainCamera != null && currentCameraTarget != null)
             {
                 mainCamera.transform.position = Vector3.Lerp(
@@ -79,7 +72,7 @@ namespace TiradPass
                 mainCamera.transform.rotation = Quaternion.Slerp(
                     mainCamera.transform.rotation,
                     currentCameraTarget.rotation,
-                    Time.deltaTime * cameraRotateSpeed
+                    Time.deltaTime * cameraMoveSpeed
                 );
             }
         }
@@ -88,72 +81,42 @@ namespace TiradPass
         {
             if (isCutsceneActive) return;
             isCutsceneActive = true;
-            StartCoroutine(RunNewEndingCutsceneSequence());
+            StartCoroutine(RunStaticDefenderEndingSequence());
         }
 
-        private IEnumerator RunNewEndingCutsceneSequence()
+        private IEnumerator RunStaticDefenderEndingSequence()
         {
-            // STEP 1: GOYO AND SOLDIERS FIRING BEHIND BARRICADES
-            SnapCamera(barricadeFiringCamTarget);
+            // Snap camera to initial close shot over the barricade
+            SnapCamera(soldierStartCamTarget);
 
-            if (goyoAnimator != null) goyoAnimator.SetTrigger("Trig_Fire");
-            foreach (var solAnim in soldierAnimators)
-            {
-                if (solAnim != null) solAnim.SetTrigger("Trig_Fire");
-            }
-            yield return new WaitForSeconds(3.0f);
+            // --- 1. ZOOM OUT & FADE IN SIMULTANEOUSLY (~3.5 seconds) ---
+            if (zoomOutCamTarget != null) currentCameraTarget = zoomOutCamTarget;
 
-            // STEP 2: SOLDIERS DIE ONE BY ONE
-            for (int i = 0; i < soldierAnimators.Count; i++)
+            if (screenFadeCanvasGroup != null)
             {
-                if (soldierAnimators[i] != null)
-                {
-                    soldierAnimators[i].SetTrigger("Trig_Die");
-                }
-                yield return new WaitForSeconds(1.2f); // Stagger deaths
+                // Fade in from black asynchronously while camera pulls back
+                StartCoroutine(FadeCanvasGroup(screenFadeCanvasGroup, 1f, 0f, 2.0f));
             }
 
-            yield return new WaitForSeconds(1.0f);
+            // Hold on the wide zoom-out view of the fallen defenders
+            yield return new WaitForSeconds(3.5f);
 
-            // STEP 3: GOYO GETS HIT AND FALLS DOWN
-            SnapCamera(goyoFallCamTarget);
-            if (singleGunshotAudio != null) singleGunshotAudio.Play();
+            // --- 2. SMOOTH TILT UP TO SKY & HOLD (~4.5 seconds) ---
+            if (skyTiltCamTarget != null) currentCameraTarget = skyTiltCamTarget;
 
-            if (goyoAnimator != null) goyoAnimator.SetTrigger("Trig_Fall");
-            yield return new WaitForSeconds(1.5f);
+            // Wait for sky tilt motion and lingering shot (~8s total camera sequence)
+            yield return new WaitForSeconds(4.5f);
 
-            // STEP 4: CAMERA TILTS TOWARD SKY AS SCREEN SMOOTHLY FADES TO SOLID WHITE
-            if (skyTiltCamTarget != null)
-            {
-                // Smoothly transition camera rotation/position up toward sky target
-                currentCameraTarget = skyTiltCamTarget;
-            }
-
+            // --- 3. FADE TO BLACK AFTER SKY TILT FINISHES ---
             if (battleAmbienceSource != null) battleAmbienceSource.Stop();
-
-            if (screenFadeImage != null) screenFadeImage.color = Color.white;
-            yield return StartCoroutine(FadeCanvasGroup(screenFadeCanvasGroup, 0f, 1f, 1.8f));
-
-            // STEP 5: SCREEN TRANSITIONS FROM WHITE TO STATIC WIDE SHOT OF QUIET FOGGY PASS
-            SnapCamera(aftermathCamTarget);
-
-            // Hide standing actors and enable fallen pose models if needed
-            foreach (var obj in soldierObjects)
-            {
-                if (obj != null) obj.SetActive(false);
-            }
-
             if (windAmbienceSource != null) windAmbienceSource.Play();
+
+            if (screenFadeCanvasGroup != null)
+                yield return StartCoroutine(FadeCanvasGroup(screenFadeCanvasGroup, 0f, 1f, 2.0f));
+
             yield return new WaitForSeconds(0.5f);
 
-            // Fade from white to reveal quiet pass
-            yield return StartCoroutine(FadeCanvasGroup(screenFadeCanvasGroup, 1f, 0f, 2.5f));
-            yield return new WaitForSeconds(3.0f);
-
-            // STEP 6: DARK OVERLAY FADES IN & HISTORICAL TEXT TYPES OUT
-            if (screenFadeImage != null) screenFadeImage.color = Color.black;
-            yield return StartCoroutine(FadeCanvasGroup(screenFadeCanvasGroup, 0f, 0.75f, 1.2f));
-
+            // --- 4. HISTORICAL TEXT CARD OVER BLACK OVERLAY ---
             if (dateText != null) dateText.text = "December 2, 1899";
             if (summaryText != null) summaryText.text = "The rear guard fell, and President Aguinaldo escaped.";
 
@@ -165,7 +128,7 @@ namespace TiradPass
             if (historicalTextCanvasGroup != null)
                 yield return StartCoroutine(FadeCanvasGroup(historicalTextCanvasGroup, 1f, 0f, 0.8f));
 
-            // STEP 7: GAME-OVER / LEVEL COMPLETE UI PANEL FADES IN
+            // --- 5. LEVEL COMPLETE / GAME OVER UI ---
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
 
@@ -188,7 +151,6 @@ namespace TiradPass
             if (mainCamera == null || target == null) return;
             currentCameraTarget = target;
             mainCamera.transform.position = target.position;
-            mainCamera.transform.rotation = target.rotation;
             mainCamera.transform.rotation = target.rotation;
         }
 
