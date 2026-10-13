@@ -183,7 +183,7 @@ public static class MountainEnvironmentBuilder
         return g;
     }
 
-    static bool TryBounds(GameObject g, out Bounds b)
+    internal static bool TryBounds(GameObject g, out Bounds b)
     {
         b = new Bounds();
         bool has = false;
@@ -196,7 +196,7 @@ public static class MountainEnvironmentBuilder
     }
 
     // Spawns a prefab scaled so its largest dimension is "size" meters, with its bottom sitting on pos.y.
-    static GameObject SpawnSized(GameObject prefab, Vector3 pos, Quaternion rot, float size, Transform parent)
+    internal static GameObject SpawnSized(GameObject prefab, Vector3 pos, Quaternion rot, float size, Transform parent)
     {
         var g = PrefabUtility.InstantiatePrefab(prefab, parent) as GameObject;
         if (g == null) return null;
@@ -217,7 +217,7 @@ public static class MountainEnvironmentBuilder
         return g;
     }
 
-    static List<GameObject> LoadPrefabs(string dir, System.Func<string, bool> filter)
+    internal static List<GameObject> LoadPrefabs(string dir, System.Func<string, bool> filter)
     {
         var list = new List<GameObject>();
         foreach (var guid in AssetDatabase.FindAssets("t:Prefab", new[] { dir.TrimEnd('/') }))
@@ -949,7 +949,7 @@ public static class MountainEnvironmentBuilder
     }
 
     // Bush/tree packs use built-in shaders that render magenta in URP. Make URP Lit copies (alpha-clipped for leaves).
-    static void ConvertToURP(Transform grp)
+    internal static void ConvertToURP(Transform grp)
     {
         var urp = Shader.Find("Universal Render Pipeline/Lit");
         if (urp == null) return;
