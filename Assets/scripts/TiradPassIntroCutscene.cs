@@ -76,7 +76,10 @@ namespace TiradPass
         private void Awake()
         {
             if (skipButton != null)
+            {
+                skipButton.gameObject.SetActive(false);
                 skipButton.onClick.AddListener(SkipCutscene);
+            }
 
             if (dialogueCanvasGroup != null)
                 dialogueCanvasGroup.alpha = 0f;
@@ -142,6 +145,8 @@ namespace TiradPass
         {
             if (isCutsceneActive) return;
             isCutsceneActive = true;
+            if (skipButton != null)
+                skipButton.gameObject.SetActive(true);
             StartCoroutine(RunIntroCutsceneFlow());
         }
 
@@ -215,7 +220,7 @@ namespace TiradPass
 
         public void SkipCutscene()
         {
-            if (isSkipping) return;
+            if (!isCutsceneActive || isSkipping) return;
             isSkipping = true;
             StopAllCoroutines();
             if (dialogueVoiceSource != null) dialogueVoiceSource.Stop();
@@ -224,6 +229,9 @@ namespace TiradPass
 
         private IEnumerator EndCutsceneAndLoadNextScene()
         {
+            if (skipButton != null)
+                skipButton.gameObject.SetActive(false);
+
             StartCoroutine(FadeOutAudio(campfireAudioSource, fadeDuration));
             StartCoroutine(FadeOutAudio(nightAmbienceAudioSource, fadeDuration));
 
