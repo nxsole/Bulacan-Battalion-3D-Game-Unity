@@ -254,6 +254,8 @@ public static class SugarcaneLevel3
         return l;
     }
 
+    static float ArenaR = 0f;
+
     static long PlantCane(Terrain terrain, TerrainData td, Transform root, GameObject[] cane)
     {
         float S = td.size.x;
@@ -293,6 +295,7 @@ public static class SugarcaneLevel3
                 float x = -S / 2f + (xi + 0.5f) / dr * S;
                 int ax = Mathf.Clamp(Mathf.RoundToInt((xi + 0.5f) / dr * (aw - 1)), 0, aw - 1);
                 if (alpha[az, ax, 1] > 0.18f) continue;                      // road / camp ground stays clear
+                if (ArenaR > 0f && x * x + z * z < (ArenaR + 0.5f) * (ArenaR + 0.5f)) continue;   // boss arena stays open
                 bool blocked = false; var wp = new Vector2(cx0 + x, cz0 + z);
                 for (int c = 0; c < clear.Count; c++) if (clear[c].Contains(wp)) { blocked = true; break; }
                 if (blocked) continue;
@@ -575,7 +578,7 @@ public static class SugarcaneLevel3
         var rockGrp = new GameObject("Road Rocks").transform; rockGrp.SetParent(root, false);
         var rocks = new List<GameObject>();
         foreach (var guid in AssetDatabase.FindAssets("SM_LittleRock t:Prefab"))
-        { var pf = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guid)); if (pf != null) rocks.Add(pf); }
+        { var pf = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guid)); if (pf != null && !pf.name.Contains("GreenMoss")) rocks.Add(pf); }
         int nr = 0;
         if (rocks.Count > 0)
             for (float z = -S / 2f + 15f; z < S / 2f - 15f; z += R(3f, 7f))
@@ -626,5 +629,477 @@ public static class SugarcaneLevel3
         EditorSceneManager.MarkSceneDirty(l3);
         EditorSceneManager.SaveScene(l3);
         Debug.Log("Level 3: Level 2 lighting + ground colours applied" + (haveL2 ? "" : " (Level 2 scene not found, lighting unchanged)") + ", ground made bumpy, " + nr + " road rocks, " + nb + " bushes. Scene saved.");
+    }
+
+    // ---------------------------------------------------------------- boss arena: wide open circle in the middle of the field
+    const float BossR = 38f;
+
+    [MenuItem("Tools/Level 3/Boss arena: open circle in the centre of the field")]
+    public static void BossArena()
+    {
+        var scene = EditorSceneManager.GetActiveScene();
+        if (!scene.path.EndsWith("Level 3.unity")) { Debug.LogWarning("Level 3: open the Level 3 scene first."); return; }
+        var rootGo = GameObject.Find("Mountain Environment");
+        var terrain = rootGo != null ? rootGo.GetComponentInChildren<Terrain>() : null;
+        if (terrain == null) { Debug.LogWarning("Level 3: no terrain."); return; }
+        var root = rootGo.transform; var td = terrain.terrainData;
+        float S = td.size.x, sy = td.size.y, ty = terrain.transform.position.y;
+        float cx0 = terrain.transform.position.x + S / 2f, cz0 = terrain.transform.position.z + S / 2f;
+        Vector3 C = new Vector3(cx0, 0f, cz0);
+        EditorUtility.DisplayProgressBar("Level 3", "Clearing the arena...", 0.05f);
+
+        // 1. buildings / walls / fences that stand inside the circle are moved (as whole groups) to just outside it
+        int moved = 0;
+        var groups = new List<Transform>();
+        foreach (Transform g in root)
+            if (g.name == "Camp" || g.name == "Fence" || g.name.StartsWith("Stone Wall")) groups.Add(g);
+        var units = new List<Transform>(); var oldY = new List<float>();
+        foreach (var g in groups)
+        {
+            var rs = g.GetComponentsInChildren<Renderer>(); if (rs.Length == 0) continue;
+            Bounds b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
+            Vector3 d = b.center - C; d.y = 0f;
+            float ext = Mathf.Max(b.extents.x, b.extents.z);
+            float dist = d.magnitude;
+            if (dist - ext > BossR + 3f) continue;
+            Vector3 dir = dist > 0.5f ? d / dist : Vector3.right;
+            // record ground height of each piece before the move
+            var pieces = new List<Transform>();
+            if (g.childCount == 0) pieces.Add(g); else foreach (Transform it in g) pieces.Add(it);
+            var before = new List<float>();
+            foreach (var it in pieces) before.Add(terrain.SampleHeight(it.position) + ty);
+            Undo.RecordObject(g, "Boss arena");
+            g.position += dir * (BossR + 6f + ext - dist);
+            for (int i = 0; i < pieces.Count; i++) { units.Add(pieces[i]); oldY.Add(before[i]); }   // re-grounded after flattening below
+            moved++;
+        }
+        var sp = root.Find("Sample Player");
+        if (sp != null) { units.Add(sp); oldY.Add(terrain.SampleHeight(sp.position) + ty); }
+        // pieces that moved horizontally: drop them onto the ground at their new spot
+        for (int i = 0; i < units.Count; i++)
+            if (units[i] != sp) { float ny = terrain.SampleHeight(units[i].position) + ty; float wasOn = oldY[i]; units[i].position += Vector3.up * (ny - wasOn); oldY[i] = ny; }
+
+        // 2. flatten the circle into an open, level clearing (soft 10 m edge)
+        EditorUtility.DisplayProgressBar("Level 3", "Levelling the arena...", 0.3f);
+        int res = td.heightmapResolution;
+        var h = td.GetHeights(0, 0, res, res);
+        double sum = 0; int cnt = 0;
+        for (int zi = 0; zi < res; zi++) for (int xi = 0; xi < res; xi++)
+        {
+            float x = -S / 2f + xi / (res - 1f) * S, z = -S / 2f + zi / (res - 1f) * S;
+            if (x * x + z * z < BossR * BossR) { sum += h[zi, xi]; cnt++; }
+        }
+        float target = cnt > 0 ? (float)(sum / cnt) : 0.1f;
+        for (int zi = 0; zi < res; zi++) for (int xi = 0; xi < res; xi++)
+        {
+            float x = -S / 2f + xi / (res - 1f) * S, z = -S / 2f + zi / (res - 1f) * S;
+            float d = Mathf.Sqrt(x * x + z * z);
+            if (d > BossR + 10f) continue;
+            float t = Smooth01((d - BossR) / 10f);
+            float inner = target + 0.25f * (Fbm(x * 0.06f + 2f, z * 0.06f, 2) - 0.5f) / sy;   // very slight unevenness
+            h[zi, xi] = Mathf.Lerp(inner, h[zi, xi], t);
+        }
+        td.SetHeights(0, 0, h);
+        for (int i = 0; i < units.Count; i++)
+            if (units[i] != null) units[i].position += Vector3.up * (terrain.SampleHeight(units[i].position) + ty - oldY[i]);
+
+        // 3. arena floor: trampled Level 2 dirt with a few grass patches, fading into the field
+        int aw = td.alphamapWidth, ah = td.alphamapHeight;
+        var a = td.GetAlphamaps(0, 0, aw, ah); int L = a.GetLength(2);
+        for (int zi = 0; zi < ah; zi++) for (int xi = 0; xi < aw; xi++)
+        {
+            float x = -S / 2f + xi / (aw - 1f) * S, z = -S / 2f + zi / (ah - 1f) * S;
+            float d = Mathf.Sqrt(x * x + z * z);
+            if (d > BossR + 4f) continue;
+            float w = (1f - Smooth01((d - (BossR - 3f)) / 6f)) * Mathf.Lerp(0.55f, 1f, Fbm(x * 0.08f + 9f, z * 0.08f, 3));
+            float dirt = Mathf.Max(a[zi, xi, 1], Mathf.Clamp01(w));
+            a[zi, xi, 0] = 1f - dirt; a[zi, xi, 1] = dirt;
+            for (int l = 2; l < L; l++) a[zi, xi, l] = 0f;
+        }
+        td.SetAlphamaps(0, 0, a);
+
+        // 4. sugarcane: replant everything with the circle left open (cane forms the wall around it)
+        EditorUtility.DisplayProgressBar("Level 3", "Replanting cane around the arena...", 0.55f);
+        var cane = new List<GameObject>();
+        foreach (var n in new[] { "Sugarcane_Clump_A", "Sugarcane_Clump_B", "Sugarcane_Clump_C" })
+        { var pf = AssetDatabase.LoadAssetAtPath<GameObject>(Dir + "/Prefabs/" + n + ".prefab"); if (pf != null) cane.Add(pf); }
+        ArenaR = BossR;
+        long planted = cane.Count > 0 ? PlantCane(terrain, td, root, cane.ToArray()) : 0;
+        ArenaR = 0f;
+
+        // 5. no road rocks / bushes inside the arena; a ring of bushes along its edge instead
+        int removed = 0;
+        foreach (var gname in new[] { "Road Rocks", "Bushes" })
+        {
+            var grp = root.Find(gname); if (grp == null) continue;
+            var kill = new List<GameObject>();
+            foreach (Transform it in grp) { Vector3 d = it.position - C; d.y = 0f; if (d.magnitude < BossR + 1f) kill.Add(it.gameObject); else it.position += Vector3.up * 0f; }
+            foreach (var k in kill) { Object.DestroyImmediate(k); removed++; }
+            // re-ground what is left near the new edge
+            foreach (Transform it in grp) { Vector3 d = it.position - C; d.y = 0f; if (d.magnitude < BossR + 12f) GroundObj(terrain, it, gname == "Road Rocks" ? 0.3f : 0.08f); }
+        }
+        var oldRim = root.Find("Arena Edge Bushes"); if (oldRim != null) Object.DestroyImmediate(oldRim.gameObject);
+        var rim = new GameObject("Arena Edge Bushes").transform; rim.SetParent(root, false);
+        var bushes = MountainEnvironmentBuilder.LoadPrefabs("Assets/YughuesFreeBushes2018/Prefabs/", nm => nm.StartsWith("P_Bush"));
+        var rng = new System.Random(77); int nb = 0;
+        if (bushes.Count > 0)
+        {
+            for (float ang = 0f; ang < 360f; ang += 9f + (float)rng.NextDouble() * 8f)
+            {
+                float rad = ang * Mathf.Deg2Rad, rr = BossR + (float)rng.NextDouble() * 2.5f - 0.5f;
+                float lx = Mathf.Cos(rad) * rr, lz = Mathf.Sin(rad) * rr;
+                if (Mathf.Abs(lx - PathX(lz)) < 5f) continue;                       // keep the road openings clear
+                var pos = new Vector3(cx0 + lx, terrain.SampleHeight(new Vector3(cx0 + lx, 0f, cz0 + lz)) + ty, cz0 + lz);
+                var g = MountainEnvironmentBuilder.SpawnSized(bushes[rng.Next(bushes.Count)], pos, Quaternion.Euler(0f, (float)rng.NextDouble() * 360f, 0f), 1.4f + (float)rng.NextDouble() * 1.2f, rim);
+                if (g != null) g.name = "Edge Bush " + (++nb).ToString("00");
+            }
+            MountainEnvironmentBuilder.ConvertToURP(rim);
+        }
+
+        // 6. a marker at the exact centre for placing the boss / triggers
+        var mark = root.Find("Boss Arena Center");
+        if (mark == null) { mark = new GameObject("Boss Arena Center").transform; mark.SetParent(root, false); }
+        mark.position = new Vector3(cx0, terrain.SampleHeight(C) + ty, cz0);
+
+        EditorUtility.SetDirty(td);
+        AssetDatabase.SaveAssets();
+        EditorUtility.ClearProgressBar();
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log("Level 3: boss arena (radius " + BossR + " m) cleared at the centre; " + moved + " building groups moved out of the circle, " + removed + " rocks/bushes removed from it, " + nb + " edge bushes, " + planted + " cane clumps. Scene saved.");
+    }
+
+    // ---------------------------------------------------------------- 4 big cover rocks inside the boss arena
+    [MenuItem("Tools/Level 3/Boss arena - add 4 big cover rocks")]
+    public static void ArenaCoverRocks()
+    {
+        var scene = EditorSceneManager.GetActiveScene();
+        var rootGo = GameObject.Find("Mountain Environment");
+        var terrain = rootGo != null ? rootGo.GetComponentInChildren<Terrain>() : null;
+        if (terrain == null) { Debug.LogWarning("Level 3: no terrain."); return; }
+        var root = rootGo.transform; var td = terrain.terrainData;
+        float S = td.size.x, ty = terrain.transform.position.y;
+        float cx0 = terrain.transform.position.x + S / 2f, cz0 = terrain.transform.position.z + S / 2f;
+
+        var old = root.Find("Arena Cover Rocks"); if (old != null) Object.DestroyImmediate(old.gameObject);
+        var grp = new GameObject("Arena Cover Rocks").transform; grp.SetParent(root, false);
+        // the same big boulders used on Level 2 (single rocks, not the flat groups)
+        var rocks = MountainEnvironmentBuilder.LoadPrefabs("Assets/Rocks and Boulders 2/Rocks/Prefabs/", nm => !nm.Contains("LOD") && !nm.Contains("grup"));
+        if (rocks.Count == 0) { Debug.LogWarning("Level 3: rock prefabs not found."); return; }
+        var rng = new System.Random(2026);
+
+        // four positions on a ring halfway out, one per quarter, turned away from the road
+        float baseAng = 45f, ring = 17f; int n = 0;
+        for (int q = 0; q < 4; q++)
+        {
+            float best = -1f; Vector2 pick = Vector2.zero;
+            for (int tries = 0; tries < 24; tries++)                      // nudge the angle until the rock is well clear of the road
+            {
+                float a = (baseAng + q * 90f + (tries - 12) * 3f) * Mathf.Deg2Rad;
+                float lx = Mathf.Cos(a) * ring, lz = Mathf.Sin(a) * ring;
+                float clear = Mathf.Abs(lx - PathX(lz));
+                if (clear > best) { best = clear; pick = new Vector2(lx, lz); }
+                if (clear > 9f && tries >= 12) break;
+            }
+            var pf = rocks[rng.Next(rocks.Count)];
+            var pos = new Vector3(cx0 + pick.x, terrain.SampleHeight(new Vector3(cx0 + pick.x, 0f, cz0 + pick.y)) + ty, cz0 + pick.y);
+            var g = MountainEnvironmentBuilder.SpawnSized(pf, pos, Quaternion.Euler(0f, (float)rng.NextDouble() * 360f, 0f), 6.5f + (float)rng.NextDouble() * 1.5f, grp);
+            if (g == null) continue;
+            // make sure it is tall enough to hide behind (player is ~1.8 m)
+            var rs = g.GetComponentsInChildren<Renderer>();
+            Bounds b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
+            if (b.size.y < 3f) g.transform.localScale = Vector3.Scale(g.transform.localScale, new Vector3(1f, 3f / b.size.y, 1f));
+            GroundObj(terrain, g.transform, 0.12f);
+            // a collider so the player and bullets can't pass through
+            if (g.GetComponentInChildren<Collider>() == null)
+                foreach (var mf in g.GetComponentsInChildren<MeshFilter>()) { var mc = mf.gameObject.AddComponent<MeshCollider>(); mc.sharedMesh = mf.sharedMesh; }
+            g.name = "Cover Rock " + (++n);
+        }
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log("Level 3: added " + n + " big cover rocks inside the boss arena. Scene saved.");
+    }
+
+    // ---------------------------------------------------------------- arena dressing: richer ground, small rocks at the cover rocks, spiky grass
+    static GameObject MakeSpikyGrass(string name, int seed, Material mat)
+    {
+        var rng = new System.Random(seed);
+        System.Func<float> R = () => (float)rng.NextDouble();
+        var mb = new MB();
+        int blades = 14 + rng.Next(6);
+        for (int i = 0; i < blades; i++)
+        {
+            Vector3 o = new Vector3((R() - 0.5f) * 0.12f, -0.02f, (R() - 0.5f) * 0.12f);
+            int tile = R() < 0.18f ? 2 : 1;                               // a few dry blades for colour variation
+            AddLeaf(mb, o, R() * 360f, 58f + R() * 26f, 0.45f + R() * 0.45f, 0.022f + R() * 0.012f, 0.35f + R() * 0.5f, tile, 3);
+        }
+        var m = new Mesh { name = name };
+        m.SetVertices(mb.v); m.SetUVs(0, mb.uv); m.SetTriangles(mb.t, 0);
+        m.RecalculateNormals(); var n = m.normals; for (int i = 0; i < n.Length; i++) n[i] = (n[i] * 0.4f + Vector3.up).normalized; m.normals = n;
+        m.RecalculateBounds();
+        string mp = Dir + "/Meshes/" + name + ".asset"; AssetDatabase.DeleteAsset(mp); AssetDatabase.CreateAsset(m, mp);
+        var go = new GameObject(name);
+        go.AddComponent<MeshFilter>().sharedMesh = m;
+        var mr = go.AddComponent<MeshRenderer>(); mr.sharedMaterial = mat; mr.shadowCastingMode = ShadowCastingMode.Off;
+        var pf = PrefabUtility.SaveAsPrefabAsset(go, Dir + "/Prefabs/" + name + ".prefab");
+        Object.DestroyImmediate(go);
+        return pf;
+    }
+
+    [MenuItem("Tools/Level 3/Boss arena - richer ground + small rocks + spiky grass")]
+    public static void ArenaDressing()
+    {
+        var scene = EditorSceneManager.GetActiveScene();
+        var rootGo = GameObject.Find("Mountain Environment");
+        var terrain = rootGo != null ? rootGo.GetComponentInChildren<Terrain>() : null;
+        if (terrain == null) { Debug.LogWarning("Level 3: no terrain."); return; }
+        var root = rootGo.transform; var td = terrain.terrainData;
+        float S = td.size.x, ty = terrain.transform.position.y;
+        float cx0 = terrain.transform.position.x + S / 2f, cz0 = terrain.transform.position.z + S / 2f;
+        const float AR = 38f;
+        var rng = new System.Random(System.Environment.TickCount);
+        System.Func<float, float, float> Rn = (a, b) => a + (b - a) * (float)rng.NextDouble();
+
+        // cover rocks (local centre + radius)
+        var cover = new List<Vector3>();
+        var coverGrp = root.Find("Arena Cover Rocks");
+        if (coverGrp != null) foreach (Transform t in coverGrp)
+        {
+            var rs = t.GetComponentsInChildren<Renderer>(); if (rs.Length == 0) continue;
+            Bounds b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
+            cover.Add(new Vector3(b.center.x - cx0, b.center.z - cz0, Mathf.Max(b.extents.x, b.extents.z)));
+        }
+
+        // ---- 1. ground: grass with large worn patches, fine mottling, gravel around the rocks
+        EditorUtility.DisplayProgressBar("Level 3", "Texturing the arena floor...", 0.1f);
+        int aw = td.alphamapWidth, ah = td.alphamapHeight, L = td.alphamapLayers;
+        var al = td.GetAlphamaps(0, 0, aw, ah);
+        for (int zi = 0; zi < ah; zi++)
+        {
+            float z = -S / 2f + zi / (ah - 1f) * S;
+            if (Mathf.Abs(z) > AR + 4f) continue;
+            for (int xi = 0; xi < aw; xi++)
+            {
+                float x = -S / 2f + xi / (aw - 1f) * S;
+                float r = Mathf.Sqrt(x * x + z * z);
+                if (r > AR + 4f) continue;
+                float fade = 1f - Smooth01((r - AR) / 4f);
+                float road = 1f - Smooth01((Mathf.Abs(x - PathX(z)) - 2.8f) / 1.8f);
+                float big = Fbm(x * 0.045f + 3f, z * 0.045f + 8f, 3);
+                float fine = Fbm(x * 0.28f + 1f, z * 0.28f, 2);
+                float dirt = Mathf.Clamp01((big - 0.42f) * 2.2f + (fine - 0.5f) * 0.6f);
+                float rock = Mathf.Clamp01((Fbm(x * 0.14f + 20f, z * 0.14f, 2) - 0.66f) * 2.5f) * 0.45f;   // gravelly specks
+                foreach (var c in cover)
+                {
+                    float d = Mathf.Sqrt((x - c.x) * (x - c.x) + (z - c.y) * (z - c.y));
+                    rock = Mathf.Max(rock, (1f - Smooth01((d - c.z) / 3.5f)) * 0.65f * (0.7f + 0.3f * fine));
+                    dirt = Mathf.Max(dirt, (1f - Smooth01((d - c.z - 1f) / 4f)) * 0.5f);
+                }
+                dirt = Mathf.Max(dirt, road);
+                float wR = L > 2 ? rock * (1f - road) : 0f;
+                float wD = dirt * (1f - wR);
+                float wG = Mathf.Max(0f, 1f - wD - wR);
+                // blend with whatever was there towards the rim
+                for (int l = 0; l < L; l++)
+                {
+                    float nv = l == 0 ? wG : l == 1 ? wD : l == 2 ? wR : 0f;
+                    al[zi, xi, l] = Mathf.Lerp(al[zi, xi, l], nv, fade);
+                }
+                float sum = 0f; for (int l = 0; l < L; l++) sum += al[zi, xi, l];
+                if (sum > 0f) for (int l = 0; l < L; l++) al[zi, xi, l] /= sum;
+            }
+        }
+        td.SetAlphamaps(0, 0, al);
+
+        // ---- 2. small rocks huddled around each big cover rock
+        EditorUtility.DisplayProgressBar("Level 3", "Placing small rocks...", 0.4f);
+        var oldS = root.Find("Arena Small Rocks"); if (oldS != null) Object.DestroyImmediate(oldS.gameObject);
+        var sGrp = new GameObject("Arena Small Rocks").transform; sGrp.SetParent(root, false);
+        var little = new List<GameObject>();
+        foreach (var guid in AssetDatabase.FindAssets("SM_LittleRock t:Prefab"))
+        { var pf = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guid)); if (pf != null && !pf.name.Contains("GreenMoss")) little.Add(pf); }
+        int ns = 0;
+        if (little.Count > 0)
+            foreach (var c in cover)
+            {
+                int k = rng.Next(6, 10);
+                for (int i = 0; i < k; i++)
+                {
+                    float a = Rn(0f, Mathf.PI * 2f), d = c.z * Rn(0.85f, 1.1f) + Rn(0.3f, 2.2f);
+                    float lx = c.x + Mathf.Cos(a) * d, lz = c.y + Mathf.Sin(a) * d;
+                    var g = MountainEnvironmentBuilder.SpawnSized(little[rng.Next(little.Count)], new Vector3(cx0 + lx, 0f, cz0 + lz), Quaternion.identity, i < 3 ? Rn(0.7f, 1.3f) : Rn(0.25f, 0.7f), sGrp);
+                    if (g == null) continue;
+                    g.transform.rotation = Quaternion.Euler(Rn(-12f, 12f), Rn(0f, 360f), Rn(-12f, 12f));
+                    GroundObj(terrain, g.transform, 0.25f);
+                    g.name = "Small Rock " + (++ns).ToString("00");
+                }
+            }
+
+        // ---- 3. spiky grass tufts (made here, same leaf texture as the cane) painted as terrain detail
+        EditorUtility.DisplayProgressBar("Level 3", "Growing spiky grass...", 0.6f);
+        var mat = AssetDatabase.LoadAssetAtPath<Material>(Dir + "/Materials/Sugarcane.mat");
+        var tufts = new[] { MakeSpikyGrass("SpikyGrass_A", 501, mat), MakeSpikyGrass("SpikyGrass_B", 733, mat) };
+        int dw = td.detailWidth, dh = td.detailHeight;
+        var protos = new List<DetailPrototype>(td.detailPrototypes);
+        var keep = new List<int[,]>();
+        for (int k = 0; k < protos.Count; k++) keep.Add(td.GetDetailLayer(0, 0, dw, dh, k));
+        var tIdx = new List<int>();
+        foreach (var tp in tufts)
+        {
+            int idx = protos.FindIndex(p => p.prototype != null && p.prototype.name == tp.name);
+            var dp = new DetailPrototype { usePrototypeMesh = true, prototype = tp, useInstancing = true, renderMode = DetailRenderMode.VertexLit,
+                                           minWidth = 0.8f, maxWidth = 1.5f, minHeight = 0.8f, maxHeight = 1.4f, noiseSpread = 4f, density = 1f };
+            if (idx < 0) { protos.Add(dp); keep.Add(new int[dh, dw]); idx = protos.Count - 1; } else protos[idx] = dp;
+            tIdx.Add(idx);
+        }
+        td.detailPrototypes = protos.ToArray();
+        foreach (var i in tIdx) keep[i] = new int[dh, dw];
+        int nt = 0;
+        for (int zi = 0; zi < dh; zi++)
+        {
+            float z = -S / 2f + (zi + 0.5f) / dh * S;
+            if (Mathf.Abs(z) > AR + 3f) continue;
+            for (int xi = 0; xi < dw; xi++)
+            {
+                float x = -S / 2f + (xi + 0.5f) / dw * S;
+                float r = Mathf.Sqrt(x * x + z * z);
+                if (r > AR + 2f) continue;
+                if (Mathf.Abs(x - PathX(z)) < 2.2f) continue;                          // keep the road line itself clear
+                bool onRock = false;
+                foreach (var c in cover) if (Mathf.Sqrt((x - c.x) * (x - c.x) + (z - c.y) * (z - c.y)) < c.z * 0.8f) { onRock = true; break; }
+                if (onRock) continue;
+                float patch = Fbm(x * 0.09f + 40f, z * 0.09f + 3f, 2);
+                float nearRock = 0f;
+                foreach (var c in cover) nearRock = Mathf.Max(nearRock, 1f - Smooth01((Mathf.Sqrt((x - c.x) * (x - c.x) + (z - c.y) * (z - c.y)) - c.z) / 4f));
+                float rim = Smooth01((r - (AR - 8f)) / 8f);
+                float p = Mathf.Clamp01((patch - 0.5f) * 3f) + nearRock * 0.8f + rim * 0.6f;
+                if (Hash(xi * 3 + 7, zi * 5 + 1) > p * 0.8f) continue;
+                int cnt = p > 0.9f ? 2 : 1;
+                keep[tIdx[(xi + zi) % tIdx.Count]][zi, xi] = cnt; nt += cnt;
+            }
+        }
+        for (int k = 0; k < protos.Count; k++) td.SetDetailLayer(0, 0, k, keep[k]);
+
+        EditorUtility.SetDirty(td);
+        AssetDatabase.SaveAssets();
+        EditorUtility.ClearProgressBar();
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log("Level 3: arena floor re-textured, " + ns + " small rocks around the cover rocks, " + nt + " spiky grass tufts. Scene saved.");
+    }
+
+    // ---------------------------------------------------------------- far trees on the hills around the plantation (Level 1 palms + Level 2 brown-bark trees)
+    [MenuItem("Tools/Level 3/Far trees around the field")]
+    public static void FarTrees()
+    {
+        var scene = EditorSceneManager.GetActiveScene();
+        var rootGo = GameObject.Find("Mountain Environment");
+        var terrain = rootGo != null ? rootGo.GetComponentInChildren<Terrain>() : null;
+        if (terrain == null) { Debug.LogWarning("Level 3: no terrain."); return; }
+        var root = rootGo.transform; var td = terrain.terrainData;
+        float S = td.size.x, ty = terrain.transform.position.y;
+        float cx0 = terrain.transform.position.x + S / 2f, cz0 = terrain.transform.position.z + S / 2f;
+        var rng = new System.Random(System.Environment.TickCount);
+        System.Func<float, float, float> Rn = (a, b) => a + (b - a) * (float)rng.NextDouble();
+
+        var palms = MountainEnvironmentBuilder.LoadPrefabs("Assets/Coconut Palm Tree Pack/Prefabs/", null);
+        var broad = new List<GameObject>();
+        foreach (var guid in AssetDatabase.FindAssets("t:Prefab birch", new[] { "Assets/R3DWorks" }))
+        { var pf = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guid)); if (pf != null && pf.name.StartsWith("birch")) broad.Add(pf); }
+        var makeTropical = typeof(MountainEnvironmentBuilder).GetMethod("MakeTropical", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+        if (palms.Count == 0 && broad.Count == 0) { Debug.LogWarning("Level 3: no tree prefabs found."); return; }
+
+        var old = root.Find("Far Trees"); if (old != null) Object.DestroyImmediate(old.gameObject);
+        var grp = new GameObject("Far Trees").transform; grp.SetParent(root, false);
+        EditorUtility.DisplayProgressBar("Level 3", "Planting far trees...", 0.2f);
+
+        // a tree line on the low hills that ring the plantation, thicker towards the very edge, in natural clumps
+        float half = S / 2f - 6f, cell = 15f; int n = 0;
+        for (float gz = -half; gz < half; gz += cell)
+            for (float gx = -half; gx < half; gx += cell)
+            {
+                float x = gx + Rn(0f, cell), z = gz + Rn(0f, cell);
+                float edge = Mathf.Max(Mathf.Abs(x), Mathf.Abs(z));
+                if (edge < 255f) continue;                                         // stays out of the playable field
+                float band = Smooth01((edge - 255f) / 60f);
+                float clump = Fbm(x * 0.03f + 50f, z * 0.03f + 11f, 2);
+                if (rng.NextDouble() > band * (0.35f + clump * 0.9f)) continue;
+                bool palm = palms.Count > 0;   // the birch-based trees render white at distance, so the far tree line is palms only
+                var pf = palm ? palms[rng.Next(palms.Count)] : broad[rng.Next(broad.Count)];
+                var pos = new Vector3(cx0 + x, terrain.SampleHeight(new Vector3(cx0 + x, 0f, cz0 + z)) + ty, cz0 + z);
+                var g = MountainEnvironmentBuilder.SpawnSized(pf, pos, Quaternion.Euler(palm ? Rn(-5f, 5f) : 0f, Rn(0f, 360f), palm ? Rn(-5f, 5f) : 0f), palm ? Rn(9f, 15f) : Rn(9f, 14f), grp);
+                if (g == null) continue;
+                if (!palm && makeTropical != null) makeTropical.Invoke(null, new object[] { g });
+                g.name = (palm ? "Far Palm " : "Far Tree ") + (++n).ToString("000");
+            }
+        MountainEnvironmentBuilder.ConvertToURP(grp);
+
+        // keep them visible from far away (no popping to nothing)
+        foreach (var lg in grp.GetComponentsInChildren<LODGroup>(true))
+        {
+            var l = lg.GetLODs(); if (l.Length < 2) continue;
+            for (int i = 0; i < l.Length; i++)
+                l[i].screenRelativeTransitionHeight = (i == l.Length - 1) ? Mathf.Min(l[i].screenRelativeTransitionHeight, 0.002f) : l[i].screenRelativeTransitionHeight * 0.4f;
+            lg.SetLODs(l);
+        }
+        foreach (var cam in Object.FindObjectsByType<Camera>())
+            if (cam.farClipPlane < 1500f) { Undo.RecordObject(cam, "Far clip"); cam.farClipPlane = 1500f; }
+
+        EditorUtility.ClearProgressBar();
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log("Level 3: planted " + n + " far trees (palms + brown-bark trees) on the hills around the field. Scene saved.");
+    }
+
+    // ---------------------------------------------------------------- swap green / mossy rocks for the plain dark rocks used in every level
+    [MenuItem("Tools/Level 3/Use dark rocks (remove green moss)")]
+    public static void DarkRocks()
+    {
+        var scene = EditorSceneManager.GetActiveScene();
+        var rootGo = GameObject.Find("Mountain Environment");
+        if (rootGo == null) { Debug.LogWarning("Level 3: Mountain Environment not found."); return; }
+        var terrain = rootGo.GetComponentInChildren<Terrain>();
+        int cleared = 0, swapped = 0;
+
+        // 1. remove the green tint that was painted on the big rocks
+        foreach (var r in rootGo.GetComponentsInChildren<Renderer>(true))
+        {
+            if (!r.HasPropertyBlock()) continue;
+            var mpb = new MaterialPropertyBlock(); r.GetPropertyBlock(mpb);
+            Color c = mpb.GetColor("_BaseColor"); if (c == default(Color)) c = mpb.GetColor("_Color");
+            if (c.g > 1.2f && c.g > c.r) { r.SetPropertyBlock(null); cleared++; }
+        }
+
+        // 2. replace every "…_GreenMoss" rock with its plain (dark) version, same place, rotation and size
+        var plain = new Dictionary<string, GameObject>();
+        foreach (var guid in AssetDatabase.FindAssets("t:Prefab SM_LittleRock"))
+        { var pf = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guid)); if (pf != null && !pf.name.Contains("GreenMoss")) plain[pf.name] = pf; }
+        var plainList = new List<GameObject>(plain.Values);
+        var green = new List<Transform>();
+        foreach (var t in rootGo.GetComponentsInChildren<Transform>(true))
+        {
+            var src = PrefabUtility.GetCorrespondingObjectFromSource(t.gameObject);
+            bool isRoot = PrefabUtility.GetOutermostPrefabInstanceRoot(t.gameObject) == t.gameObject;
+            if (isRoot && src != null && src.name.Contains("GreenMoss")) green.Add(t);
+        }
+        foreach (var t in green)
+        {
+            var src = PrefabUtility.GetCorrespondingObjectFromSource(t.gameObject);
+            string baseName = src.name.Replace("_GreenMoss", "");
+            GameObject rep; if (!plain.TryGetValue(baseName, out rep)) rep = plainList.Count > 0 ? plainList[0] : null;
+            if (rep == null) continue;
+            var g = PrefabUtility.InstantiatePrefab(rep, t.parent) as GameObject;
+            g.transform.SetPositionAndRotation(t.position, t.rotation);
+            g.transform.localScale = t.localScale;
+            g.transform.SetSiblingIndex(t.GetSiblingIndex());
+            g.name = t.name.Contains("GreenMoss") ? t.name.Replace("_GreenMoss", "") : t.name;
+            Undo.RegisterCreatedObjectUndo(g, "Dark rocks");
+            Undo.DestroyObjectImmediate(t.gameObject);
+            swapped++;
+        }
+
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log("Level 3: removed green tint from " + cleared + " rock meshes and swapped " + swapped + " green-moss rocks for the dark ones. Scene saved.");
     }
 }
