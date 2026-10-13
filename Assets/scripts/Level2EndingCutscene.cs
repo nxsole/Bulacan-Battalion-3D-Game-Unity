@@ -26,6 +26,7 @@ namespace TiradPass
         [SerializeField] private Image screenFadeImage;
         [SerializeField] private CanvasGroup historicalTextCanvasGroup;
         [SerializeField] private CanvasGroup levelCompleteCanvasGroup;
+        [SerializeField] private Button skipButton;
 
         [Header("UI Text Fields")]
         [SerializeField] private TextMeshProUGUI dateText;
@@ -44,9 +45,20 @@ namespace TiradPass
 
         private Transform currentCameraTarget;
         private bool isCutsceneActive = false;
+        private bool isSkipping = false;
 
         private void Awake()
         {
+            // Unlock mouse cursor for UI interaction
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+
+            if (skipButton != null)
+            {
+                skipButton.onClick.RemoveAllListeners();
+                skipButton.onClick.AddListener(SkipEndingCutscene);
+            }
+
             if (historicalTextCanvasGroup != null) historicalTextCanvasGroup.alpha = 0f;
             if (levelCompleteCanvasGroup != null) levelCompleteCanvasGroup.alpha = 0f;
 
@@ -64,6 +76,21 @@ namespace TiradPass
 
         private void Update()
         {
+            if (isSkipping) return;
+
+            // Unlock cursor if captured during sequence
+            if (Cursor.lockState != CursorLockMode.None)
+            {
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+            }
+
+            // Keyboard shortcut support: Space, Escape, or Enter to skip
+            if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.Return))
+            {
+                SkipEndingCutscene();
+            }
+
             // Smooth continuous interpolation between camera targets
             if (isCutsceneActive && mainCamera != null && currentCameraTarget != null)
             {
@@ -98,7 +125,6 @@ namespace TiradPass
 
             if (screenFadeCanvasGroup != null)
             {
-                // Fade in from black asynchronously while camera pulls back
                 StartCoroutine(FadeCanvasGroup(screenFadeCanvasGroup, 1f, 0f, 2.0f));
             }
 
@@ -108,7 +134,6 @@ namespace TiradPass
             // --- 2. SMOOTH TILT UP TO SKY & HOLD (~4.5 seconds) ---
             if (skyTiltCamTarget != null) currentCameraTarget = skyTiltCamTarget;
 
-            // Wait for sky tilt motion and lingering shot (~8s total camera sequence)
             yield return new WaitForSeconds(4.5f);
 
             // --- 3. FADE TO BLACK AFTER SKY TILT FINISHES ---
@@ -133,9 +158,6 @@ namespace TiradPass
                 yield return StartCoroutine(FadeCanvasGroup(historicalTextCanvasGroup, 1f, 0f, 0.8f));
 
             // --- 5. LEVEL COMPLETE / GAME OVER UI ---
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-
             if (levelCompleteCanvasGroup != null)
                 yield return StartCoroutine(FadeCanvasGroup(levelCompleteCanvasGroup, 0f, 1f, 0.8f));
 
@@ -144,18 +166,50 @@ namespace TiradPass
             // --- 6. HOLD LEVEL COMPLETE FOR 3 SECONDS ---
             yield return new WaitForSeconds(levelCompleteHoldDuration);
 
-            // --- 7. FADE AUDIO OUT & LOAD MAIN MENU DIRECTLY ---
+            // --- 7. FADE AUDIO & PERSISTENT BGM OUT ---
             yield return StartCoroutine(FadeAllAudioOut(finalAudioFadeDuration));
 
             // --- 8. LOAD MAIN MENU ---
             ReturnToMainMenu();
         }
 
+        public void SkipEndingCutscene()
+        {
+            if (isSkipping) return;
+            isSkipping = true;
+
+            StopAllCoroutines();
+
+            // Fade persistent music out quickly on skip
+            PersistentBGM bgm = FindObjectOfType<PersistentBGM>();
+            if (bgm != null)
+            {
+                bgm.FadeOutAndDestroy(0.5f);
+            }
+
+            // Stop local ambience sources
+            if (battleAmbienceSource != null) battleAmbienceSource.Stop();
+            if (windAmbienceSource != null) windAmbienceSource.Stop();
+
+            ReturnToMainMenu();
+        }
+
         public void ReturnToMainMenu()
         {
+            // Ensure persistent BGM gets cleaned up if transitioning directly
+            PersistentBGM bgm = FindObjectOfType<PersistentBGM>();
+            if (bgm != null)
+            {
+                bgm.FadeOutAndDestroy(finalAudioFadeDuration);
+            }
+
             if (!string.IsNullOrEmpty(mainMenuSceneName))
             {
                 SceneManager.LoadScene(mainMenuSceneName);
+            }
+            else
+            {
+                Debug.LogError("Main menu scene name is missing in Inspector!");
             }
         }
 
@@ -181,9 +235,17 @@ namespace TiradPass
 
         private IEnumerator FadeAllAudioOut(float duration)
         {
+            // 1. Fade local scene audio sources
             float elapsed = 0.0f;
             float startVolBattle = battleAmbienceSource != null ? battleAmbienceSource.volume : 0f;
             float startVolWind = windAmbienceSource != null ? windAmbienceSource.volume : 0f;
+
+            // 2. Fade persistent background music from gameplay
+            PersistentBGM bgm = FindObjectOfType<PersistentBGM>();
+            if (bgm != null)
+            {
+                bgm.FadeOutAndDestroy(duration);
+            }
 
             while (elapsed < duration)
             {

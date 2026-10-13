@@ -104828,7 +104828,7 @@ MonoBehaviour:
   dialogueCanvasGroup: {fileID: 1379215315}
   screenFadeCanvasGroup: {fileID: 1758968686}
   skipButton: {fileID: 473094899}
-  nextSceneName: main menu
+  nextSceneName: Level 2 Gameplay
   cameraMoveSpeed: 2
   cameraRotateSpeed: 2
   openingStartTarget: {fileID: 1802396294}

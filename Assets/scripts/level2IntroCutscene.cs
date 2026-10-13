@@ -127,7 +127,7 @@ namespace TiradPass
 
         private void Update()
         {
-            if (!isCutsceneActive) return;
+            if (!isCutsceneActive || isSkipping) return;
 
             // Keep cursor unlocked throughout cutscene execution
             if (Cursor.lockState != CursorLockMode.None)
@@ -313,9 +313,61 @@ namespace TiradPass
         {
             if (isSkipping) return;
             isSkipping = true;
+
+            // Stop cutscene execution coroutines immediately
             StopAllCoroutines();
+
+            // Start skip transition (fade audio & screen simultaneously)
+            StartCoroutine(RunSkipSequence());
+        }
+
+        private IEnumerator RunSkipSequence()
+        {
+            // 1. Hide Dialogue Box instantly
+            if (dialogueCanvasGroup != null)
+            {
+                dialogueCanvasGroup.alpha = 0f;
+            }
+
+            // 2. Smoothly fade audio and screen to black over 0.5 seconds
+            float fadeDuration = 0.5f;
+            float elapsed = 0.0f;
+            float startAlpha = screenFadeCanvasGroup != null ? screenFadeCanvasGroup.alpha : 0f;
+
+            float startVolVoice = dialogueVoiceSource != null ? dialogueVoiceSource.volume : 0f;
+            float startVolBg = backgroundAmbienceSource != null ? backgroundAmbienceSource.volume : 0f;
+            float startVolRunning = americansRunningAudio != null ? americansRunningAudio.volume : 0f;
+
+            while (elapsed < fadeDuration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / fadeDuration;
+
+                // Screen Fade
+                if (screenFadeCanvasGroup != null)
+                {
+                    screenFadeCanvasGroup.alpha = Mathf.Lerp(startAlpha, 1.0f, t);
+                }
+
+                // Audio Fade Out
+                if (dialogueVoiceSource != null) dialogueVoiceSource.volume = Mathf.Lerp(startVolVoice, 0f, t);
+                if (backgroundAmbienceSource != null) backgroundAmbienceSource.volume = Mathf.Lerp(startVolBg, 0f, t);
+                if (americansRunningAudio != null) americansRunningAudio.volume = Mathf.Lerp(startVolRunning, 0f, t);
+
+                yield return null;
+            }
+
+            // Ensure screen is completely black & audio stopped
+            if (screenFadeCanvasGroup != null) screenFadeCanvasGroup.alpha = 1.0f;
+
             if (dialogueVoiceSource != null) dialogueVoiceSource.Stop();
-            StartCoroutine(EndCutsceneAndTransitionScene());
+            if (backgroundAmbienceSource != null) backgroundAmbienceSource.Stop();
+            if (americansRunningAudio != null) americansRunningAudio.Stop();
+
+            yield return new WaitForSeconds(0.1f);
+
+            // 3. Load Gameplay Scene
+            LoadNextSceneDirectly();
         }
 
         private IEnumerator EndCutsceneAndTransitionScene()
@@ -328,11 +380,21 @@ namespace TiradPass
 
             yield return new WaitForSeconds(0.5f);
 
+            LoadNextSceneDirectly();
+        }
+
+        private void LoadNextSceneDirectly()
+        {
             isCutsceneActive = false;
 
             if (!string.IsNullOrEmpty(nextSceneName))
             {
+                Debug.Log("Loading Scene: " + nextSceneName);
                 SceneManager.LoadScene(nextSceneName);
+            }
+            else
+            {
+                Debug.LogError("Next Scene Name is missing in the Inspector!");
             }
         }
 
