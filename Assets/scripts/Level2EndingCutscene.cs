@@ -37,6 +37,10 @@ namespace TiradPass
 
         [Header("Scene Transition Settings")]
         [SerializeField] private string mainMenuSceneName = "main menu";
+        [Tooltip("Time to hold on Level Complete UI before transition")]
+        [SerializeField] private float levelCompleteHoldDuration = 3.0f;
+        [Tooltip("Duration of final audio fade-out")]
+        [SerializeField] private float finalAudioFadeDuration = 1.5f;
 
         private Transform currentCameraTarget;
         private bool isCutsceneActive = false;
@@ -108,8 +112,8 @@ namespace TiradPass
             yield return new WaitForSeconds(4.5f);
 
             // --- 3. FADE TO BLACK AFTER SKY TILT FINISHES ---
-            if (battleAmbienceSource != null) battleAmbienceSource.Stop();
-            if (windAmbienceSource != null) windAmbienceSource.Play();
+            if (windAmbienceSource != null && !windAmbienceSource.isPlaying)
+                windAmbienceSource.Play();
 
             if (screenFadeCanvasGroup != null)
                 yield return StartCoroutine(FadeCanvasGroup(screenFadeCanvasGroup, 0f, 1f, 2.0f));
@@ -136,6 +140,15 @@ namespace TiradPass
                 yield return StartCoroutine(FadeCanvasGroup(levelCompleteCanvasGroup, 0f, 1f, 0.8f));
 
             isCutsceneActive = false;
+
+            // --- 6. HOLD LEVEL COMPLETE FOR 3 SECONDS ---
+            yield return new WaitForSeconds(levelCompleteHoldDuration);
+
+            // --- 7. FADE AUDIO OUT & LOAD MAIN MENU DIRECTLY ---
+            yield return StartCoroutine(FadeAllAudioOut(finalAudioFadeDuration));
+
+            // --- 8. LOAD MAIN MENU ---
+            ReturnToMainMenu();
         }
 
         public void ReturnToMainMenu()
@@ -164,6 +177,29 @@ namespace TiradPass
                 yield return null;
             }
             cg.alpha = endAlpha;
+        }
+
+        private IEnumerator FadeAllAudioOut(float duration)
+        {
+            float elapsed = 0.0f;
+            float startVolBattle = battleAmbienceSource != null ? battleAmbienceSource.volume : 0f;
+            float startVolWind = windAmbienceSource != null ? windAmbienceSource.volume : 0f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+
+                if (battleAmbienceSource != null)
+                    battleAmbienceSource.volume = Mathf.Lerp(startVolBattle, 0f, t);
+                if (windAmbienceSource != null)
+                    windAmbienceSource.volume = Mathf.Lerp(startVolWind, 0f, t);
+
+                yield return null;
+            }
+
+            if (battleAmbienceSource != null) battleAmbienceSource.Stop();
+            if (windAmbienceSource != null) windAmbienceSource.Stop();
         }
     }
 }
