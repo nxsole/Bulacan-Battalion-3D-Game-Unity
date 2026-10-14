@@ -16838,7 +16838,7 @@ MonoBehaviour:
   summaryText: {fileID: 1796610597}
   battleAmbienceSource: {fileID: 0}
   windAmbienceSource: {fileID: 0}
-  mainMenuSceneName: main menu
+  mainMenuSceneName: Level3 IntroCutscene
   levelCompleteHoldDuration: 5
   finalAudioFadeDuration: 1.5
 --- !u!4 &137629004
