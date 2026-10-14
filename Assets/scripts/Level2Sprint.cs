@@ -5,7 +5,8 @@ using UnityEngine;
 // CharacterController, in the direction the player is already moving.
 //
 // No sprinting while crouched (C), aiming (right mouse), dead (death screen up), or while the player
-// script is switched off (pause menu, win/lose screen). Moving backwards doesn't sprint either.
+// script is switched off (pause menu, win/lose screen). Moving backwards doesn't sprint either, unless
+// Sprint In Any Direction is on (the Level 3 boss fight), then any of W/A/S/D sprints.
 [RequireComponent(typeof(CharacterController))]
 public class Level2Sprint : MonoBehaviour
 {
@@ -15,6 +16,8 @@ public class Level2Sprint : MonoBehaviour
     [SerializeField] private float sprintBonusSpeed = 3.2f;
     [Tooltip("Seconds to reach full sprint speed, and to slow back down.")]
     [SerializeField] private float rampTime = 0.25f;
+    [Tooltip("Off: only forward (W) sprints. On: any movement key (W/A/S/D) sprints.")]
+    [SerializeField] private bool sprintInAnyDirection = false;
 
     [Header("Feel")]
     [Tooltip("Camera field of view widens by this many degrees at full sprint. 0 = off.")]
@@ -46,7 +49,8 @@ public class Level2Sprint : MonoBehaviour
         float strafe = Input.GetAxis("Horizontal");
 
         bool canSprint = player != null && player.enabled && controller.enabled
-            && Input.GetKey(sprintKey) && forward > 0.1f
+            && Input.GetKey(sprintKey)
+            && (sprintInAnyDirection ? Mathf.Abs(forward) > 0.1f || Mathf.Abs(strafe) > 0.1f : forward > 0.1f)
             && !Input.GetKey(crouchKey) && !Input.GetButton(aimButton)
             && (deathScreen == null || deathScreen.alpha < 0.5f);
 

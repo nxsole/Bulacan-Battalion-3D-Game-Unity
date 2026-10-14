@@ -12167,6 +12167,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 7146422396013903275, guid: 563083ffae09b564884e87f1514dcd22, type: 3}
+      propertyPath: sprintInAnyDirection
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2688705853208391541, guid: 563083ffae09b564884e87f1514dcd22, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
       value: 0
