@@ -184,6 +184,7 @@ public class EnemyAI : MonoBehaviour
     private bool orderIsFresh; // true only from when an order arrives until the unit first acts on it
     private bool orderCrouchWalk; // stance chosen once per order: true = crouch-walk, false = stand
     private Vector3 orderPoint;
+    private int orderSlot = -1; // formation slot claimed for the current order; -1 = not yet claimed
 
     // True while a move order is being carried out. AllyPathFollower watches this: when it flips
     // back to false the unit has arrived at the current waypoint, so the follower issues the next.
@@ -869,6 +870,7 @@ public class EnemyAI : MonoBehaviour
             agent.speed = repositionSpeed;
 
             float recheckTimer = 0f;
+            bool destinationIssued = false;
 
             while (hasOrder)
             {
@@ -877,7 +879,14 @@ public class EnemyAI : MonoBehaviour
                     Vector3 destination = ComputeOrderDestination();
                     if (NavMesh.SamplePosition(destination, out NavMeshHit navHit, minSeparationDistance * 2f, NavMesh.AllAreas))
                     {
-                        agent.SetDestination(navHit.position);
+                        // Only re-target when the destination has genuinely moved (e.g. the point became
+                        // contested). Re-issuing small shifts every recheck kept units that were almost
+                        // there chasing a spot that moved under them, so they looped around the waypoint.
+                        if (!destinationIssued || Vector3.Distance(navHit.position, agent.destination) > orderArrivalDistance * 2f)
+                        {
+                            agent.SetDestination(navHit.position);
+                            destinationIssued = true;
+                        }
                     }
                     recheckTimer = orderRecheckInterval;
                 }
@@ -904,13 +913,12 @@ public class EnemyAI : MonoBehaviour
     }
 
     // Where this unit's slot lands in the formation. Vogel-spiral offset scaled by
-    // minSeparationDistance, indexed by this unit's rank (by current distance to the
-    // order point) among all same-tag units currently executing the SAME order - reusing
-    // the existing minSeparationDistance/ActiveEnemies infrastructure instead of a
-    // separate squad list, which also sidesteps any shared-collection mutation issues.
+    // minSeparationDistance, indexed by the slot this unit claimed for the order (see
+    // ClaimOrderSlot) - reusing the existing minSeparationDistance/ActiveEnemies
+    // infrastructure instead of a separate squad list.
     private Vector3 ComputeOrderDestination()
     {
-        int slotIndex = OrderSlotIndex();
+        int slotIndex = ClaimOrderSlot();
         Vector3 formationOffset = SpiralOffset(slotIndex, minSeparationDistance);
 
         Transform nearestOpponent = FindNearestOpponentTo(orderPoint, orderContestedCheckRadius);
@@ -937,23 +945,35 @@ public class EnemyAI : MonoBehaviour
         return candidate;
     }
 
-    private int OrderSlotIndex()
+    // Claims the lowest formation slot not already held by a squadmate sent to the same point,
+    // and keeps it for the rest of the order. Slots used to be re-ranked by distance to the point
+    // on every recheck, so as units overtook each other - or as one arrived and dropped out of the
+    // group - everyone behind got a new slot up to a full spiral turn away and wheeled around the
+    // waypoint to reach it. Units that already arrived keep their slot until their next order, so
+    // late arrivals don't claim a spot someone is already standing on.
+    private int ClaimOrderSlot()
     {
-        List<EnemyAI> group = new List<EnemyAI>();
+        if (orderSlot >= 0) return orderSlot;
+
+        HashSet<int> taken = new HashSet<int>();
         foreach (var other in ActiveEnemies)
         {
-            if (other == null) continue;
-            if (!other.CompareTag(gameObject.tag)) continue;
-            if (!other.hasOrder) continue;
-            if (Vector3.Distance(other.orderPoint, orderPoint) > 0.5f) continue; // different order
-            group.Add(other);
+            if (other == null || other == this) continue;
+            if (!IsSameOrderSquadmate(other)) continue;
+            taken.Add(other.orderSlot);
         }
 
-        group.Sort((a, b) =>
-            Vector3.SqrMagnitude(a.transform.position - orderPoint)
-            .CompareTo(Vector3.SqrMagnitude(b.transform.position - orderPoint)));
+        int slot = 0;
+        while (taken.Contains(slot)) slot++;
+        orderSlot = slot;
+        return orderSlot;
+    }
 
-        return group.IndexOf(this);
+    private bool IsSameOrderSquadmate(EnemyAI other)
+    {
+        return other.orderSlot >= 0
+            && other.CompareTag(gameObject.tag)
+            && Vector3.Distance(other.orderPoint, orderPoint) <= 0.5f;
     }
 
     private Vector3 SpiralOffset(int index, float spacing)
@@ -1001,6 +1021,9 @@ public class EnemyAI : MonoBehaviour
             {
                 if (other == null || other == this) continue;
                 if (!other.CompareTag(gameObject.tag)) continue;
+                // Squadmates on this same order already hold distinct, spaced spiral slots. Nudging
+                // off their destinations just shoved slots into each other's path and back again.
+                if (IsSameOrderSquadmate(other)) continue;
 
                 float d = Vector3.Distance(candidate, other.PlanningPosition);
                 if (d < closestDist)
@@ -1336,6 +1359,7 @@ public class EnemyAI : MonoBehaviour
         orderIsFresh = true;
         orderCrouchWalk = Random.value < orderCrouchWalkChance; // pick stance once, for the whole trip
         orderPoint = point;
+        orderSlot = -1; // release the old point's slot; a fresh one is claimed for this point
     }
 
     public void CancelMoveOrder()
