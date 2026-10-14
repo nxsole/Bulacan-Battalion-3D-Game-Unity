@@ -66,6 +66,10 @@ public class Level2WaveSpawner : MonoBehaviour
     [Tooltip("Fired once every wave has been spawned and every spawned soldier is dead. Never fires while Repeat Last Wave is on.")]
     public UnityEvent onAllWavesDefeated = new UnityEvent();
 
+    // Each soldier right after it's spawned (already active and in place) - e.g. the Goyo boss uses it
+    // to point his reinforcements at the player.
+    public event System.Action<GameObject> Spawned;
+
     private readonly List<Animator> alive = new List<Animator>();
     private int spawnIndex;
     private int spawnedThisWave;
@@ -198,6 +202,7 @@ public class Level2WaveSpawner : MonoBehaviour
 
         var animator = go.GetComponent<Animator>();
         if (animator != null) alive.Add(animator);
+        Spawned?.Invoke(go);
     }
 
     private void OnDrawGizmos()

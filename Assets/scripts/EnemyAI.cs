@@ -34,6 +34,9 @@ public class EnemyAI : MonoBehaviour
     [Tooltip("0 = always miss, 1 = always hit. Provides a chance to survive the instant-kill shot.")]
     [SerializeField, Range(0f, 1f)] private float hitChance = 0.6f;
 
+    [Tooltip("Chance a shot at the PLAYER lands (hitChance above only applies to AI soldiers). 1 = always, the original behaviour, so existing soldiers are unaffected; lower it per soldier for less accurate troops.")]
+    [SerializeField, Range(0f, 1f)] private float playerHitChance = 1f;
+
     [SerializeField] private AudioClip gunShotSound;
     [SerializeField, Range(0f, 1f)] private float gunShotVolume = 1.0f;
     [SerializeField] private AudioSource audioSource;
@@ -578,7 +581,8 @@ public class EnemyAI : MonoBehaviour
             var playerTarget = currentTarget.GetComponentInParent<FirstPersonController>();
             if (playerTarget != null)
             {
-                playerTarget.TakeHit();
+                // at 1 no random roll is made, so default soldiers behave exactly as before
+                if (playerHitChance >= 1f || Random.value < playerHitChance) playerTarget.TakeHit();
             }
             else if (Random.value <= hitChance)
             {

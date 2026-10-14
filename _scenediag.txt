@@ -1,0 +1,170 @@
+scene Assets/Scenes/Level 1.unity
+TERRAIN Terrain active=True pos=(0.00, 0.00, -156.20) size=(200.00, 600.00, 100.00) data=Assets/Fantasy Forest Environment Free Sample/Scenes/New Terrain.asset mat=TerrainLit/Universal Render Pipeline/Terrain/Lit
+  layers=4 alphaLayers=4
+   layer layer_grass01b3407d0e55802f81 path=Assets/_TerrainAutoUpgrade/layer_grass01b3407d0e55802f81.terrainlayer diffuse=grass01
+   layer layer_dirt01b3407d0e55802f81 path=Assets/_TerrainAutoUpgrade/layer_dirt01b3407d0e55802f81.terrainlayer diffuse=dirt01
+   layer layer_grass01_bb3407d0e55802f81 path=Assets/_TerrainAutoUpgrade/layer_grass01_bb3407d0e55802f81.terrainlayer diffuse=grass01_b
+   layer layer_dirt01_camp path=Assets/_TerrainAutoUpgrade/layer_dirt01_camp.terrainlayer diffuse=dirt01
+BIG Coconut_Palm_Tree08 (3) size=(10.50, 26.43, 10.29) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree08 (3) size=(10.50, 26.43, 10.29) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree09 size=(9.68, 24.95, 9.47) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree09 size=(9.68, 24.95, 9.47) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree05 (1) size=(8.59, 15.33, 15.33) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree05 (1) size=(8.59, 15.33, 15.33) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Rock3 size=(9.05, 7.09, 10.58) mat=Rock3 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock3.mat | tex=NONE
+BIG Coconut_Palm_Tree12 (4) size=(8.05, 17.94, 10.55) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree12 (4) size=(8.05, 17.94, 10.55) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Cube (42) size=(15.05, 8.19, 11.12) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Rock1A (1) size=(13.17, 9.42, 11.69) mat=Rock1 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock1.mat | tex=NONE
+BIG Coconut_Palm_Tree11 (3) size=(10.81, 25.42, 11.36) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree11 (3) size=(10.81, 25.42, 11.36) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Rock2 (4) size=(18.05, 20.87, 19.25) mat=Rock2 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock2.mat | tex=NONE
+BIG Cube (7) size=(2.40, 8.19, 29.72) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Cube (2) size=(10.99, 8.19, 7.04) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Coconut_Palm_Tree10 (3) size=(8.83, 20.82, 8.90) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree10 (3) size=(8.83, 20.82, 8.90) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Rock2 size=(18.91, 20.87, 17.67) mat=Rock2 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock2.mat | tex=NONE
+BIG Rock1A (1) size=(10.81, 9.42, 12.41) mat=Rock1 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock1.mat | tex=NONE
+BIG Coconut_Palm_Tree12 (2) size=(8.05, 17.94, 10.55) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree12 (2) size=(8.05, 17.94, 10.55) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree09 (4) size=(9.68, 24.95, 9.47) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree09 (4) size=(9.68, 24.95, 9.47) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Rock2 size=(26.03, 19.12, 25.62) mat=Rock2 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock2.mat | tex=NONE
+BIG Coconut_Palm_Tree06 (2) size=(8.95, 19.81, 9.09) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree06 (2) size=(8.95, 19.81, 9.09) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree11 (4) size=(10.81, 25.42, 11.36) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree11 (4) size=(10.81, 25.42, 11.36) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Cube (13) size=(2.79, 8.19, 12.18) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Rock1A size=(10.81, 9.42, 12.41) mat=Rock1 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock1.mat | tex=NONE
+BIG Rock2 (3) size=(13.83, 12.11, 12.43) mat=Rock2 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock2.mat | tex=NONE
+BIG Coconut_Palm_Tree08 (9) size=(10.50, 26.43, 10.29) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree08 (9) size=(10.50, 26.43, 10.29) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree09 (7) size=(9.68, 24.95, 9.47) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree09 (7) size=(9.68, 24.95, 9.47) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree12 (3) size=(8.05, 17.94, 10.55) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree12 (3) size=(8.05, 17.94, 10.55) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree06 size=(8.95, 19.81, 9.09) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree06 size=(8.95, 19.81, 9.09) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree09 (2) size=(9.68, 24.95, 9.47) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree09 (2) size=(9.68, 24.95, 9.47) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Rock4B (2) size=(9.78, 6.65, 9.68) mat=Rock4 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock4.mat | tex=NONE
+BIG Cube (38) size=(9.51, 8.19, 10.08) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Coconut_Palm_Tree05 (3) size=(8.59, 15.33, 15.33) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree05 (3) size=(8.59, 15.33, 15.33) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Cube (14) size=(2.79, 8.19, 12.18) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Rock4B (1) size=(11.35, 4.55, 5.66) mat=Rock4 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock4.mat | tex=NONE
+BIG Mountain size=(712.11, 122.36, 712.11) mat=Lit Variant | Universal Render Pipeline/Lit | path=Assets/Materials/Lit Variant.mat | tex=Grass_Layer_BaseColor
+BIG Coconut_Palm_Tree10 (5) size=(8.83, 20.82, 8.90) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree10 (5) size=(8.83, 20.82, 8.90) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Rock2 (5) size=(18.91, 20.87, 17.67) mat=Rock2 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock2.mat | tex=NONE
+BIG Cube (25) size=(29.76, 8.19, 19.31) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Rock4A (1) size=(10.66, 6.55, 11.02) mat=Rock4 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock4.mat | tex=NONE
+BIG Cube (1) size=(1.00, 8.19, 12.16) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Cube (11) size=(12.20, 8.19, 1.75) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Rock5A (3) size=(18.24, 17.03, 8.79) mat=Rock5 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock5.mat | tex=NONE
+BIG Cube (18) size=(2.77, 8.19, 12.18) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Coconut_Palm_Tree09 (3) size=(9.68, 24.95, 9.47) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree09 (3) size=(9.68, 24.95, 9.47) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree08 (4) size=(10.50, 26.43, 10.29) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree08 (4) size=(10.50, 26.43, 10.29) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Cube (4) size=(12.05, 8.19, 3.89) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Cube (39) size=(12.63, 8.19, 4.56) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Cube (37) size=(5.25, 8.19, 28.92) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Coconut_Palm_Tree09 (5) size=(9.68, 24.95, 9.47) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree09 (5) size=(9.68, 24.95, 9.47) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Rock2 size=(12.74, 14.06, 11.91) mat=Rock2 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock2.mat | tex=NONE
+BIG Cube (30) size=(8.01, 8.19, 1.19) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Cube (15) size=(16.30, 8.19, 3.49) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Rock3 size=(9.05, 7.09, 10.58) mat=Rock3 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock3.mat | tex=NONE
+BIG Rock4A size=(8.14, 6.55, 8.74) mat=Rock4 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock4.mat | tex=NONE
+BIG Cube (8) size=(10.87, 8.19, 7.24) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Rock5A (1) size=(11.54, 14.25, 8.40) mat=Rock5 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock5.mat | tex=NONE
+BIG Cube (43) size=(17.77, 8.19, 1.22) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Cube (17) size=(21.35, 8.19, 4.27) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Coconut_Palm_Tree12 (6) size=(8.05, 17.94, 10.55) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree12 (6) size=(8.05, 17.94, 10.55) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree10 (4) size=(8.83, 20.82, 8.90) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree10 (4) size=(8.83, 20.82, 8.90) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree08 (8) size=(10.50, 26.43, 10.29) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree08 (8) size=(10.50, 26.43, 10.29) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Cube (5) size=(7.82, 8.19, 10.52) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Cube (12) size=(12.20, 8.19, 2.27) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Coconut_Palm_Tree08 (2) size=(10.50, 26.43, 10.29) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree08 (2) size=(10.50, 26.43, 10.29) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree08 (5) size=(10.50, 26.43, 10.29) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree08 (5) size=(10.50, 26.43, 10.29) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Cube (40) size=(12.86, 8.19, 2.99) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Coconut_Palm_Tree10 (1) size=(8.83, 20.82, 8.90) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree10 (1) size=(8.83, 20.82, 8.90) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree10 (7) size=(8.83, 20.82, 8.90) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree10 (7) size=(8.83, 20.82, 8.90) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree12 (1) size=(8.05, 17.94, 10.55) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree12 (1) size=(8.05, 17.94, 10.55) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree08 (7) size=(10.50, 26.43, 10.29) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree08 (7) size=(10.50, 26.43, 10.29) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree08 (1) size=(10.50, 26.43, 10.29) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree08 (1) size=(10.50, 26.43, 10.29) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Cube (10) size=(12.17, 8.19, 2.96) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Cube (32) size=(2.70, 8.19, 8.01) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Cube size=(1.00, 8.19, 12.16) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Coconut_Palm_Tree08 size=(10.50, 26.43, 10.29) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree08 size=(10.50, 26.43, 10.29) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Rock3 size=(9.05, 7.09, 10.58) mat=Rock3 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock3.mat | tex=NONE
+BIG Coconut_Palm_Tree09 (1) size=(9.68, 24.95, 9.47) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree09 (1) size=(9.68, 24.95, 9.47) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree10 (6) size=(8.83, 20.82, 8.90) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree10 (6) size=(8.83, 20.82, 8.90) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Rock2 (1) size=(18.91, 20.87, 17.67) mat=Rock2 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock2.mat | tex=NONE
+BIG Rock1A (2) size=(12.85, 9.42, 11.31) mat=Rock1 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock1.mat | tex=NONE
+BIG Cube (45) size=(2.77, 8.19, 12.18) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Coconut_Palm_Tree08 (6) size=(10.50, 26.43, 10.29) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree08 (6) size=(10.50, 26.43, 10.29) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Cube (3) size=(11.90, 8.19, 4.62) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Rock1B size=(9.16, 5.61, 8.64) mat=Rock1 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock1.mat | tex=NONE
+BIG Coconut_Palm_Tree10 size=(8.83, 20.82, 8.90) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree10 size=(8.83, 20.82, 8.90) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Cube (6) size=(1.57, 8.19, 12.20) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Coconut_Palm_Tree05 (4) size=(8.59, 15.33, 15.33) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree05 (4) size=(8.59, 15.33, 15.33) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Cube (36) size=(12.22, 8.19, 1.07) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Coconut_Palm_Tree10 (2) size=(8.83, 20.82, 8.90) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree10 (2) size=(8.83, 20.82, 8.90) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree11 (1) size=(10.81, 25.42, 11.36) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree11 (1) size=(10.81, 25.42, 11.36) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree11 (2) size=(10.81, 25.42, 11.36) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree11 (2) size=(10.81, 25.42, 11.36) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Rock5A size=(11.54, 14.25, 8.40) mat=Rock5 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock5.mat | tex=NONE
+BIG Cube (41) size=(15.05, 8.19, 11.12) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Rock3 (1) size=(9.05, 7.09, 10.58) mat=Rock3 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock3.mat | tex=NONE
+BIG Rock1A size=(10.81, 9.42, 12.41) mat=Rock1 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock1.mat | tex=NONE
+BIG Cube (16) size=(12.17, 8.19, 2.85) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Coconut_Palm_Tree06 (1) size=(8.95, 19.81, 9.09) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree06 (1) size=(8.95, 19.81, 9.09) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Rock2 size=(13.83, 12.11, 12.43) mat=Rock2 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock2.mat | tex=NONE
+BIG Cube (9) size=(12.13, 8.19, 3.33) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Cube (19) size=(8.21, 8.19, 10.25) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Cube (24) size=(11.50, 8.19, 2.62) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Cube (23) size=(14.38, 8.19, 8.78) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Coconut_Palm_Tree12 size=(8.05, 17.94, 10.55) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree12 size=(8.05, 17.94, 10.55) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Rock5A size=(24.28, 16.66, 8.40) mat=Rock5 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock5.mat | tex=NONE
+BIG Rock2 (2) size=(18.91, 20.87, 17.67) mat=Rock2 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock2.mat | tex=NONE
+BIG Rock2 (7) size=(32.15, 16.86, 29.87) mat=Rock2 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock2.mat | tex=NONE
+BIG Cube (31) size=(2.70, 8.19, 8.01) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Coconut_Palm_Tree06 (3) size=(8.95, 19.81, 9.09) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree06 (3) size=(8.95, 19.81, 9.09) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Cube (44) size=(26.65, 8.19, 17.36) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Cube (21) size=(2.16, 8.19, 8.05) mat=Lit | Universal Render Pipeline/Lit | path=Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat | tex=NONE
+BIG Rock5A (2) size=(18.43, 17.51, 8.83) mat=Rock5 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock5.mat | tex=NONE
+BIG Rock1A size=(10.81, 9.42, 12.41) mat=Rock1 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock1.mat | tex=NONE
+BIG Coconut_Palm_Tree11 size=(10.81, 25.42, 11.36) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree11 size=(10.81, 25.42, 11.36) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree04 size=(9.19, 13.72, 9.37) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree04 size=(9.19, 13.72, 9.37) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Rock4B size=(10.22, 8.36, 10.38) mat=Rock4 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock4.mat | tex=NONE
+BIG Rock2 (6) size=(27.73, 16.57, 20.53) mat=Rock2 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock2.mat | tex=NONE
+BIG Rock2 (1) size=(26.59, 19.12, 26.48) mat=Rock2 | Universal Render Pipeline/Lit | path=Assets/Rocks and Boulders 2/Rocks/Source/Materials/Unity 5/Rock2.mat | tex=NONE
+BIG Coconut_Palm_Tree05 (2) size=(8.59, 15.33, 15.33) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree05 (2) size=(8.59, 15.33, 15.33) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree12 (5) size=(8.05, 17.94, 10.55) mat=bark | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/bark.mat | tex=Coconut_Palm_Tree_diffuse
+BIG Coconut_Palm_Tree12 (5) size=(8.05, 17.94, 10.55) mat=leaf | Universal Render Pipeline/Nature/SpeedTree8_PBRLit | path=Assets/Coconut Palm Tree Pack/Materials/leaf.mat | tex=Coconut_Palm_Tree_diffuse
