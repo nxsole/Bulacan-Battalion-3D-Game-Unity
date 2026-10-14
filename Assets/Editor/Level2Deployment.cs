@@ -22,7 +22,7 @@ using UnityEngine.UI;
 
 public static class Level2Deployment
 {
-    const string ScenePath = "Assets/Scenes/Level 2.unity";
+    const string ScenePath = "Assets/Scenes/Level 2 Gameplay.unity"; // was "Level 2.unity" before the cutscene scenes were split out
     const string NavMeshDir = "Assets/Scenes/Level 2";
     const string FilipinoPrefabPath = "Assets/Entities/Pinoy/Filipino Soldier.prefab";
     const string AmericanPrefabPath = "Assets/Entities/American/American Soldier.prefab";
@@ -662,14 +662,14 @@ public static class Level2Deployment
     }
 
     // ---------------------------------------------------------------- intro skip
-    // Adds Level2IntroSkip to Level 2's copy of the intro, plus a "Press SPACE to skip" hint in the
+    // Adds IntroSkip to Level 2's copy of the intro, plus a "Press SPACE to skip" hint in the
     // intro's own canvas (drawn over its black screen, same font as its text). Built once, then kept.
     static void BuildIntroSkip(StringBuilder log)
     {
         var introGo = FindRoot(IntroName);
         var intro = introGo != null ? introGo.GetComponent<SceneIntroController>() : null;
         if (intro == null) { log.AppendLine("  Intro skip: no intro in the scene, skipped"); return; }
-        if (introGo.GetComponent<Level2IntroSkip>() != null) { log.AppendLine("  Intro skip: already set up, kept as is"); return; }
+        if (introGo.GetComponent<IntroSkip>() != null) { log.AppendLine("  Intro skip: already set up, kept as is"); return; }
 
         var introSo = new SerializedObject(intro);
         var black = introSo.FindProperty("blackOverlay").objectReferenceValue as Image;
@@ -691,10 +691,10 @@ public static class Level2Deployment
         prompt.color = new Color(1f, 1f, 1f, 0.7f);
         prompt.raycastTarget = false;
         if (introText != null && introText.font != null) prompt.font = introText.font;
-        promptGo.SetActive(false); // Level2IntroSkip shows it while the intro is up
+        promptGo.SetActive(false); // IntroSkip shows it while the intro is up
         Undo.RegisterCreatedObjectUndo(promptGo, "Intro skip prompt");
 
-        var skip = Undo.AddComponent<Level2IntroSkip>(introGo);
+        var skip = Undo.AddComponent<IntroSkip>(introGo);
         var so = new SerializedObject(skip);
         so.FindProperty("intro").objectReferenceValue = intro;
         so.FindProperty("blackOverlay").objectReferenceValue = black;

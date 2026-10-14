@@ -819,7 +819,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 47395681}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7a5ac11cc976e418e8d13136b07e1f52, type: 3}
   m_Name: 
@@ -834,7 +834,7 @@ MonoBehaviour:
     m_Bits: 4294967295
   m_UseGeometry: 0
   m_DefaultArea: 0
-  m_GenerateLinks: 0
+  m_GenerateLinks: 1
   m_IgnoreNavMeshAgent: 1
   m_IgnoreNavMeshObstacle: 1
   m_OverrideTileSize: 0
@@ -21353,7 +21353,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameOutcomeManager
   allyTag: Ally
-  blackOverlay: {fileID: 729122234}
+  sceneFadeCanvasGroup: {fileID: 0}
   outcomeText: {fileID: 497231411}
   loseMessage: "When the First Philippine Republic decentralized into localized guerrilla
     militias on November 13, 1899, it severely limited Aguinaldo\u2019s ability to
@@ -21380,6 +21380,7 @@ MonoBehaviour:
   winSecondText: {fileID: 497231411}
   stingerSource: {fileID: 0}
   mainMenuSceneName: main menu
+  sceneFadeDuration: 1.2
   delayBeforeMenu: 3
   debugLogging: 1
 --- !u!1 &1624094515
