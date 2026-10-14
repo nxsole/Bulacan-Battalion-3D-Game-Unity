@@ -64,12 +64,12 @@ namespace TiradPass
         [SerializeField] private float textTypingSpeed = 0.035f;
 
         [Header("Camera Targets")]
-        [SerializeField] private Transform mateoCamTarget;        // Mateo Shot
-        [SerializeField] private Transform goyoCamTarget;         // General Goyo Shot
-        [SerializeField] private Transform sundaloCamTarget;      // Warning Soldier Shot
-        [SerializeField] private Transform americansCamTarget;    // Americans Running Shot (Ending Shot)
+        [SerializeField] private Transform mateoCamTarget;        // Mateo Shot
+        [SerializeField] private Transform goyoCamTarget;         // General Goyo Shot
+        [SerializeField] private Transform sundaloCamTarget;      // Warning Soldier Shot
+        [SerializeField] private Transform americansCamTarget;    // Americans Running Shot (Ending Shot)
 
-        [Header("Americans Ending Shot Timing")]
+        [Header("Americans Ending Shot Timing")]
         [Tooltip("How many seconds to show the Americans running shot before fading to black")]
         [SerializeField] private float americansShotDuration = 3.5f;
 
@@ -83,15 +83,15 @@ namespace TiradPass
         private bool isSkipping = false;
         private bool isCutsceneActive = false;
 
-        // Speaker color presets
-        private readonly Color colorMateo = new Color(0.95f, 0.8f, 0.4f);
+        // Speaker color presets
+        private readonly Color colorMateo = new Color(0.95f, 0.8f, 0.4f);
         private readonly Color colorGoyo = new Color(0.95f, 0.75f, 0.3f);
         private readonly Color colorSundalo = new Color(0.85f, 0.85f, 0.85f);
 
         private void Awake()
         {
-            // Unlock mouse cursor for UI interaction
-            Cursor.lockState = CursorLockMode.None;
+            // Unlock mouse cursor for UI interaction
+            Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
 
             if (skipButton != null)
@@ -103,18 +103,18 @@ namespace TiradPass
             if (dialogueCanvasGroup != null)
                 dialogueCanvasGroup.alpha = 0f;
 
-            // Start screen fully black at the very beginning
-            if (screenFadeCanvasGroup != null)
+            // Start screen fully black at the very beginning
+            if (screenFadeCanvasGroup != null)
                 screenFadeCanvasGroup.alpha = 1f;
 
-            // Ensure americans object is hidden until ending shot
-            if (americansRunningObject != null)
+            // Ensure americans object is hidden until ending shot
+            if (americansRunningObject != null)
             {
                 americansRunningObject.SetActive(false);
             }
 
-            // Snap camera directly to opening start position
-            if (mainCamera != null && openingStartTarget != null)
+            // Snap camera directly to opening start position
+            if (mainCamera != null && openingStartTarget != null)
             {
                 SnapCameraToTarget(openingStartTarget);
             }
@@ -129,32 +129,32 @@ namespace TiradPass
         {
             if (!isCutsceneActive || isSkipping) return;
 
-            // Keep cursor unlocked throughout cutscene execution
-            if (Cursor.lockState != CursorLockMode.None)
+            // Keep cursor unlocked throughout cutscene execution
+            if (Cursor.lockState != CursorLockMode.None)
             {
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
             }
 
-            // Keyboard shortcut support: Press Space, Escape, or Enter to Skip
-            if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.Return))
+            // Keyboard shortcut support: Press Space, Escape, or Enter to Skip
+            if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.Return))
             {
                 SkipCutscene();
             }
 
-            // Smooth camera movement
-            if (mainCamera != null && currentCameraTarget != null)
+            // Smooth camera movement
+            if (mainCamera != null && currentCameraTarget != null)
             {
                 mainCamera.transform.position = Vector3.Lerp(
-                    mainCamera.transform.position,
-                    currentCameraTarget.position,
-                    Time.deltaTime * currentMoveSpeed
+                  mainCamera.transform.position,
+                  currentCameraTarget.position,
+                  Time.deltaTime * currentMoveSpeed
                 );
 
                 mainCamera.transform.rotation = Quaternion.Slerp(
-                    mainCamera.transform.rotation,
-                    currentCameraTarget.rotation,
-                    Time.deltaTime * currentRotateSpeed
+                  mainCamera.transform.rotation,
+                  currentCameraTarget.rotation,
+                  Time.deltaTime * currentRotateSpeed
                 );
             }
         }
@@ -170,13 +170,13 @@ namespace TiradPass
         public void AutoFillDialogueData()
         {
             dialogueSequence = new List<Level2DialogueLine>
-            {
-                new Level2DialogueLine { speakerName = "MATEO", speakerColor = colorMateo, dialogueText = "Heneral, papalapit na ang mga Amerikano. Sa tingin ninyo, kaya natin silang pigilan?", cameraTarget = mateoCamTarget, delayAfterLine = 1.0f, instantCut = true },
-                new Level2DialogueLine { speakerName = "GOYO", speakerColor = colorGoyo, dialogueText = "Maaaring mas marami sila sa atin, Mateo. Ngunit ang makitid na daanang ito ang ating kalamangan.", cameraTarget = goyoCamTarget, delayAfterLine = 1.0f },
-                new Level2DialogueLine { speakerName = "MATEO", speakerColor = colorMateo, dialogueText = "Paano po kung makalusot sila?", cameraTarget = mateoCamTarget, delayAfterLine = 1.0f },
-                new Level2DialogueLine { speakerName = "GOYO", speakerColor = colorGoyo, dialogueText = "Lalaban tayo hanggang sa huli. Bawat sandaling mapigilan natin sila ay pagkakataon.", cameraTarget = goyoCamTarget, delayAfterLine = 1.0f },
-                new Level2DialogueLine { speakerName = "SUNDALO", speakerColor = colorSundalo, dialogueText = "Heneral! Paparating na ang mga Amerikano!", cameraTarget = sundaloCamTarget, delayAfterLine = 1.0f }
-            };
+      {
+        new Level2DialogueLine { speakerName = "MATEO", speakerColor = colorMateo, dialogueText = "Heneral, papalapit na ang mga Amerikano. Sa tingin ninyo, kaya natin silang pigilan?", cameraTarget = mateoCamTarget, delayAfterLine = 1.0f, instantCut = true },
+        new Level2DialogueLine { speakerName = "GOYO", speakerColor = colorGoyo, dialogueText = "Maaaring mas marami sila sa atin, Mateo. Ngunit ang makitid na daanang ito ang ating kalamangan.", cameraTarget = goyoCamTarget, delayAfterLine = 1.0f },
+        new Level2DialogueLine { speakerName = "MATEO", speakerColor = colorMateo, dialogueText = "Paano po kung makalusot sila?", cameraTarget = mateoCamTarget, delayAfterLine = 1.0f },
+        new Level2DialogueLine { speakerName = "GOYO", speakerColor = colorGoyo, dialogueText = "Lalaban tayo hanggang sa huli. Bawat sandaling mapigilan natin sila ay pagkakataon.", cameraTarget = goyoCamTarget, delayAfterLine = 1.0f },
+        new Level2DialogueLine { speakerName = "SUNDALO", speakerColor = colorSundalo, dialogueText = "Heneral! Paparating na ang mga Amerikano!", cameraTarget = sundaloCamTarget, delayAfterLine = 1.0f }
+      };
 
             Debug.Log("Level 2 Dialogue Sequence Auto-Filled Successfully!");
         }
@@ -190,8 +190,8 @@ namespace TiradPass
 
         private IEnumerator RunLevel2CutsceneFlow()
         {
-            // 1. OPENING SHOT: Fade in from black & Zoom out toward horizon
-            if (openingStartTarget != null && openingHorizonTarget != null)
+            // 1. OPENING SHOT: Fade in from black & Zoom out toward horizon
+            if (openingStartTarget != null && openingHorizonTarget != null)
             {
                 SnapCameraToTarget(openingStartTarget);
                 currentCameraTarget = openingHorizonTarget;
@@ -207,12 +207,12 @@ namespace TiradPass
                     yield return StartCoroutine(FadeCanvasGroup(screenFadeCanvasGroup, 0.0f, 1.0f, 0.8f));
             }
 
-            // 2. DIALOGUE UI FADE IN
-            if (dialogueCanvasGroup != null)
+            // 2. DIALOGUE UI FADE IN
+            if (dialogueCanvasGroup != null)
                 StartCoroutine(FadeCanvasGroup(dialogueCanvasGroup, 0.0f, 1.0f, 0.8f));
 
-            // 3. DIALOGUE SEQUENCE
-            for (int i = 0; i < dialogueSequence.Count; i++)
+            // 3. DIALOGUE SEQUENCE
+            for (int i = 0; i < dialogueSequence.Count; i++)
             {
                 if (isSkipping) yield break;
 
@@ -256,11 +256,11 @@ namespace TiradPass
                 yield return new WaitForSeconds(line.delayAfterLine);
             }
 
-            // 4. TRANSITION TO AMERICANS RUNNING SHOT
-            yield return ShowAmericansEndingShot();
+            // 4. TRANSITION TO AMERICANS RUNNING SHOT
+            yield return ShowAmericansEndingShot();
 
-            // 5. TRANSITION TO GAMEPLAY SCENE
-            yield return EndCutsceneAndTransitionScene();
+            // 5. TRANSITION TO GAMEPLAY SCENE
+            yield return EndCutsceneAndTransitionScene();
         }
 
         private IEnumerator ShowAmericansEndingShot()
@@ -314,23 +314,23 @@ namespace TiradPass
             if (isSkipping) return;
             isSkipping = true;
 
-            // Stop cutscene execution coroutines immediately
-            StopAllCoroutines();
+            // Stop cutscene execution coroutines immediately
+            StopAllCoroutines();
 
-            // Start skip transition (fade audio & screen simultaneously)
-            StartCoroutine(RunSkipSequence());
+            // Start skip transition (fade audio & screen simultaneously)
+            StartCoroutine(RunSkipSequence());
         }
 
         private IEnumerator RunSkipSequence()
         {
-            // 1. Hide Dialogue Box instantly
-            if (dialogueCanvasGroup != null)
+            // 1. Hide Dialogue Box instantly
+            if (dialogueCanvasGroup != null)
             {
                 dialogueCanvasGroup.alpha = 0f;
             }
 
-            // 2. Smoothly fade audio and screen to black over 0.5 seconds
-            float fadeDuration = 0.5f;
+            // 2. Smoothly fade audio and screen to black over 0.5 seconds
+            float fadeDuration = 0.5f;
             float elapsed = 0.0f;
             float startAlpha = screenFadeCanvasGroup != null ? screenFadeCanvasGroup.alpha : 0f;
 
@@ -343,22 +343,22 @@ namespace TiradPass
                 elapsed += Time.deltaTime;
                 float t = elapsed / fadeDuration;
 
-                // Screen Fade
-                if (screenFadeCanvasGroup != null)
+                // Screen Fade
+                if (screenFadeCanvasGroup != null)
                 {
                     screenFadeCanvasGroup.alpha = Mathf.Lerp(startAlpha, 1.0f, t);
                 }
 
-                // Audio Fade Out
-                if (dialogueVoiceSource != null) dialogueVoiceSource.volume = Mathf.Lerp(startVolVoice, 0f, t);
+                // Audio Fade Out
+                if (dialogueVoiceSource != null) dialogueVoiceSource.volume = Mathf.Lerp(startVolVoice, 0f, t);
                 if (backgroundAmbienceSource != null) backgroundAmbienceSource.volume = Mathf.Lerp(startVolBg, 0f, t);
                 if (americansRunningAudio != null) americansRunningAudio.volume = Mathf.Lerp(startVolRunning, 0f, t);
 
                 yield return null;
             }
 
-            // Ensure screen is completely black & audio stopped
-            if (screenFadeCanvasGroup != null) screenFadeCanvasGroup.alpha = 1.0f;
+            // Ensure screen is completely black & audio stopped
+            if (screenFadeCanvasGroup != null) screenFadeCanvasGroup.alpha = 1.0f;
 
             if (dialogueVoiceSource != null) dialogueVoiceSource.Stop();
             if (backgroundAmbienceSource != null) backgroundAmbienceSource.Stop();
@@ -366,8 +366,8 @@ namespace TiradPass
 
             yield return new WaitForSeconds(0.1f);
 
-            // 3. Load Gameplay Scene
-            LoadNextSceneDirectly();
+            // 3. Load Gameplay Scene
+            LoadNextSceneDirectly();
         }
 
         private IEnumerator EndCutsceneAndTransitionScene()
