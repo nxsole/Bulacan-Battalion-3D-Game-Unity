@@ -263,14 +263,7 @@ public static class SugarcaneLevel3
         var alpha = td.GetAlphamaps(0, 0, aw, ah);
         td.SetDetailScatterMode(DetailScatterMode.InstanceCountMode);   // values below are instance counts, not % coverage
         var protos = new DetailPrototype[cane.Length];
-        for (int i = 0; i < cane.Length; i++)
-        {
-            protos[i] = new DetailPrototype
-            {
-                usePrototypeMesh = true, prototype = cane[i], useInstancing = true, renderMode = DetailRenderMode.VertexLit,
-                minWidth = 1.2f, maxWidth = 1.8f, minHeight = 0.9f, maxHeight = 1.3f, noiseSpread = 6f, density = 1f
-            };
-        }
+        for (int i = 0; i < cane.Length; i++) protos[i] = CaneProto(cane[i]);
         td.detailPrototypes = protos;
         int dr = 512;
         td.SetDetailResolution(dr, 16);
@@ -308,8 +301,84 @@ public static class SugarcaneLevel3
         for (int k = 0; k < protos.Length; k++) td.SetDetailLayer(0, 0, k, maps[k]);
         terrain.detailObjectDistance = 90f; terrain.detailObjectDensity = 1f;
         terrain.heightmapPixelError = 5f; terrain.basemapDistance = 1500f; terrain.drawInstanced = true;
+        SplitCaneShadows(td);
         EditorUtility.SetDirty(td);
         return planted;
+    }
+
+    // ---------------------------------------------------------------- cane shadows near the centre only
+    // Detail meshes take their shadow setting from the prefab, so cane inside ShadowCaneR (the boss arena and the
+    // cane wall around it) is moved onto shadow-casting copies of the clump prefabs; the rest of the field stays shadowless.
+    const float ShadowCaneR = 70f;
+
+    static DetailPrototype CaneProto(GameObject pf)
+    {
+        return new DetailPrototype
+        {
+            usePrototypeMesh = true, prototype = pf, useInstancing = true, renderMode = DetailRenderMode.VertexLit,
+            minWidth = 1.2f, maxWidth = 1.8f, minHeight = 0.9f, maxHeight = 1.3f, noiseSpread = 6f, density = 1f
+        };
+    }
+
+    static GameObject ShadowCanePrefab(GameObject cane)
+    {
+        var go = Object.Instantiate(cane);
+        go.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.On;
+        var pf = PrefabUtility.SaveAsPrefabAsset(go, Dir + "/Prefabs/" + cane.name + "_Shadow.prefab");
+        Object.DestroyImmediate(go);
+        return pf;
+    }
+
+    static long SplitCaneShadows(TerrainData td)
+    {
+        float S = td.size.x;
+        int dw = td.detailWidth, dh = td.detailHeight;
+        var protos = new List<DetailPrototype>(td.detailPrototypes);
+        var layers = new List<int[,]>();
+        for (int k = 0; k < protos.Count; k++) layers.Add(td.GetDetailLayer(0, 0, dw, dh, k));
+        var pairs = new List<Vector2Int>();   // x = plain cane layer, y = its shadow-casting twin
+        int n0 = protos.Count;
+        for (int k = 0; k < n0; k++)
+        {
+            var pf = protos[k].prototype;
+            if (pf == null || !pf.name.StartsWith("Sugarcane_Clump_") || pf.name.EndsWith("_Shadow")) continue;
+            var sp = ShadowCanePrefab(pf);
+            int s = protos.FindIndex(p => p.prototype != null && p.prototype.name == sp.name);
+            if (s < 0) { protos.Add(CaneProto(sp)); layers.Add(new int[dh, dw]); s = protos.Count - 1; } else protos[s] = CaneProto(sp);
+            pairs.Add(new Vector2Int(k, s));
+        }
+        td.detailPrototypes = protos.ToArray();
+        long moved = 0; float r2 = ShadowCaneR * ShadowCaneR;
+        for (int zi = 0; zi < dh; zi++)
+        {
+            float z = -S / 2f + (zi + 0.5f) / dh * S;
+            for (int xi = 0; xi < dw; xi++)
+            {
+                float x = -S / 2f + (xi + 0.5f) / dw * S;
+                bool near = x * x + z * z < r2;
+                foreach (var p in pairs)
+                {
+                    int c = layers[p.x][zi, xi] + layers[p.y][zi, xi];
+                    layers[p.x][zi, xi] = near ? 0 : c; layers[p.y][zi, xi] = near ? c : 0;
+                    if (near) moved += c;
+                }
+            }
+        }
+        for (int k = 0; k < protos.Count; k++) td.SetDetailLayer(0, 0, k, layers[k]);
+        EditorUtility.SetDirty(td);
+        return moved;
+    }
+
+    [MenuItem("Tools/Level 3/Cane shadows near the centre only (current scene)")]
+    public static void CaneShadowsNearCentre()
+    {
+        var rootGo = GameObject.Find("Mountain Environment");
+        var terrain = rootGo != null ? rootGo.GetComponentInChildren<Terrain>() : null;
+        if (terrain == null) { Debug.LogWarning("Level 3: scene has no terrain."); return; }
+        long moved = SplitCaneShadows(terrain.terrainData);
+        AssetDatabase.SaveAssets();
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        Debug.Log("Level 3: " + moved + " cane clumps within " + ShadowCaneR + "m of the centre now cast shadows.");
     }
 
     [MenuItem("Tools/Level 3/Replant cane + remove mountain rocks (current scene)")]

@@ -147,14 +147,22 @@ public class GameOutcomeManager : MonoBehaviour
     {
         PlayStinger(winStinger);
 
-        Camera cam = Camera.main;
+        // Pan the camera the player controller actually drives. Camera.main is ambiguous here:
+        // the player's Weapon Cam (the overlay that only renders the arms/rifle) is also tagged
+        // MainCamera, and when Camera.main picked it the pan moved that overlay instead - the
+        // world view stayed put and the player model just slid backward out of frame.
+        Transform camT = null;
         if (playerToFreeze != null)
         {
             var fpc = playerToFreeze.GetComponentInChildren<FirstPersonController>();
-            if (fpc != null) fpc.enabled = false;
+            if (fpc != null)
+            {
+                fpc.enabled = false;
+                camT = fpc.PlayerCamera;
+            }
         }
+        if (camT == null && Camera.main != null) camT = Camera.main.transform;
 
-        Transform camT = cam != null ? cam.transform : null;
         if (camT != null) camT.SetParent(null);
 
         Vector3 panDir = camT != null ? camT.forward : Vector3.zero;

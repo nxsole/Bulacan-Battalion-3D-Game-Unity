@@ -1096,7 +1096,7 @@ MonoBehaviour:
   aimSwayMultiplier: 0.1
   idleDriftSpeed: 1
   idleDriftAmount: 0.025
-  aimDriftSpeed: 0.1
+  aimDriftSpeed: 1.5
   aimDriftAmount: 0.02
   firePoint: {fileID: 6176282645561116964}
   muzzleFlashPrefab: {fileID: 7803213870678100644, guid: 4247abc3a234d7644ad1de1d335b4e76, type: 3}

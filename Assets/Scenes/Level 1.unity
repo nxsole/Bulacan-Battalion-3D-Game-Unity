@@ -21353,7 +21353,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameOutcomeManager
   allyTag: Ally
-  sceneFadeCanvasGroup: {fileID: 0}
+  sceneFadeCanvasGroup: {fileID: 729122232}
   outcomeText: {fileID: 497231411}
   loseMessage: "When the First Philippine Republic decentralized into localized guerrilla
     militias on November 13, 1899, it severely limited Aguinaldo\u2019s ability to

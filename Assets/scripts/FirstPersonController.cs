@@ -104,6 +104,8 @@ public class FirstPersonController : MonoBehaviour
     [SerializeField] private float idleDriftAmount = 0.005f;
     [SerializeField] private float aimDriftSpeed = 3.5f;
     [SerializeField] private float aimDriftAmount = 0.03f;
+    private float driftTimer;
+    private bool wasAiming;
 
     [Header("Effects")]
     [SerializeField] private Transform firePoint;
@@ -620,8 +622,20 @@ public class FirstPersonController : MonoBehaviour
         float currentDriftSpeed = isAiming ? aimDriftSpeed : idleDriftSpeed;
         float currentDriftAmount = isAiming ? aimDriftAmount : idleDriftAmount;
 
-        float driftX = Mathf.Sin(Time.time * currentDriftSpeed) * currentDriftAmount;
-        float driftY = Mathf.Cos(Time.time * currentDriftSpeed * 0.5f) * currentDriftAmount;
+        // Drift phase restarts whenever ADS is entered/left, and both axes use Sin so the sway
+        // always begins dead-centre. Driving it off Time.time meant ADS started at whatever
+        // offset the clock happened to be at (and Cos started Y at full deflection), so with a
+        // slow drift speed the sights crept steadily off-centre while the shot still went to the
+        // screen centre.
+        if (isAiming != wasAiming)
+        {
+            driftTimer = 0f;
+            wasAiming = isAiming;
+        }
+        driftTimer += Time.deltaTime;
+
+        float driftX = Mathf.Sin(driftTimer * currentDriftSpeed) * currentDriftAmount;
+        float driftY = Mathf.Sin(driftTimer * currentDriftSpeed * 0.5f) * currentDriftAmount;
 
         Vector3 targetPosition = baseTargetPosition + new Vector3(swayX + driftX, swayY + driftY, 0f);
 
