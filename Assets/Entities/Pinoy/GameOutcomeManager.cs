@@ -58,6 +58,8 @@ public class GameOutcomeManager : MonoBehaviour
     [Header("After")]
     [Tooltip("Name of the scene to load on win (e.g., Level 2 Ending Cutscene or MainMenu). Must be in Build Settings.")]
     [SerializeField] private string mainMenuSceneName = "Level 2 Ending Cutscene";
+    [Tooltip("Scene to load when the player LOSES. Leave empty to use the same scene as a win (old behaviour). e.g. main menu")]
+    [SerializeField] private string loseSceneName = "";
     [Tooltip("Duration of final transition fade before loading scene.")]
     [SerializeField] private float sceneFadeDuration = 1.2f;
     [Tooltip("Real seconds to wait on the final black screen before loading the scene.")]
@@ -131,7 +133,7 @@ public class GameOutcomeManager : MonoBehaviour
 
         if (loseHoldAfterTyped > 0f) yield return WaitRealtime(loseHoldAfterTyped);
 
-        yield return TransitionAndLoadScene();
+        yield return TransitionAndLoadScene(null, string.IsNullOrEmpty(loseSceneName) ? mainMenuSceneName : loseSceneName);
     }
 
     // ---------------- WIN ----------------
@@ -237,12 +239,12 @@ public class GameOutcomeManager : MonoBehaviour
         }
 
         // Final transition to next scene
-        yield return TransitionAndLoadScene(secondTarget);
+        yield return TransitionAndLoadScene(secondTarget, mainMenuSceneName);
     }
 
     // ---------------- FADE OUT & SCENE TRANSITION ----------------
 
-    private IEnumerator TransitionAndLoadScene(TMP_Text activeTextElement = null)
+    private IEnumerator TransitionAndLoadScene(TMP_Text activeTextElement, string sceneToLoad)
     {
         TMP_Text targetText = activeTextElement != null ? activeTextElement : outcomeText;
 
@@ -285,9 +287,9 @@ public class GameOutcomeManager : MonoBehaviour
         Cursor.visible = true;
 
         // 3. Load Next Scene
-        if (!string.IsNullOrEmpty(mainMenuSceneName))
+        if (!string.IsNullOrEmpty(sceneToLoad))
         {
-            SceneManager.LoadScene(mainMenuSceneName);
+            SceneManager.LoadScene(sceneToLoad);
         }
         else
         {
