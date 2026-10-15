@@ -23,6 +23,7 @@ public class PlayerBossDamage : MonoBehaviour
 
     private int lastAmmo = int.MinValue;
 
+    // Finds the player script and checks the private fields this relies on still exist; disables itself if not.
     private void Start()
     {
         if (player == null) player = GetComponent<FirstPersonController>();

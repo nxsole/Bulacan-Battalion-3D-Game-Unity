@@ -32,6 +32,7 @@ public class VolleyRifleman : MonoBehaviour
 
     public static int HitsThisVolley; // reset by the caller, for debugging
 
+    // Called by GoyoBossAI when it spawns the rifleman: stores the volley settings and freezes the model in its aim pose facing the target.
     public void Init(Transform target, float fireAt, float chestHeight, float aimOffsetDegrees, float despawnDelay,
                      GameObject muzzleFlash, AudioClip shotSound, float shotVolume, GameObject smoke)
     {
@@ -65,6 +66,7 @@ public class VolleyRifleman : MonoBehaviour
         Face();
     }
 
+    // Keeps facing the target and fires once the volley time arrives.
     private void Update()
     {
         if (fired || target == null) return;
@@ -87,14 +89,17 @@ public class VolleyRifleman : MonoBehaviour
         }
     }
 
+    // The point the shot is aimed at: the player's standing chest height.
     private Vector3 AimPoint() => target.position + Vector3.up * chestHeight;
 
+    // Turns the body toward the target on the horizontal plane, plus the aim offset.
     private void Face()
     {
         Vector3 d = target.position - transform.position; d.y = 0f;
         if (d.sqrMagnitude > 0.01f) transform.rotation = Quaternion.LookRotation(d) * Quaternion.Euler(0f, aimOffsetDegrees, 0f);
     }
 
+    // Plays the shot effects and casts the bullet ray; the first thing it hits takes it, damaging the player if that's them.
     private void Fire()
     {
         fired = true;
@@ -115,6 +120,7 @@ public class VolleyRifleman : MonoBehaviour
         StartCoroutine(Despawn());
     }
 
+    // Everything along the ray, nearest first.
     private static RaycastHit[] SortedHits(Vector3 origin, Vector3 dir, float range)
     {
         var hits = Physics.RaycastAll(origin, dir, range, ~0, QueryTriggerInteraction.Ignore);
@@ -122,6 +128,7 @@ public class VolleyRifleman : MonoBehaviour
         return hits;
     }
 
+    // After despawnDelay, puffs smoke and removes the rifleman.
     private IEnumerator Despawn()
     {
         yield return new WaitForSeconds(despawnDelay);

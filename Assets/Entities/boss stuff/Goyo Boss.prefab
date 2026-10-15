@@ -1244,7 +1244,7 @@ MonoBehaviour:
   aimBone: {fileID: 2273633335508161210}
   aimCorrection: 1
   maxAimCorrectionAngle: 40
-  maxHealth: 10
+  maxHealth: 20
   vulnerableOnlyWhileReloading: 1
   rollChance: 1
   nearMissRadius: 1.5

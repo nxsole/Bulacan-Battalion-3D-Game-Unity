@@ -114,6 +114,20 @@ public class Level2WaveSpawner : MonoBehaviour
         return sum / count;
     }
 
+    // How many of this spawner's living troops are within radius (ground distance) of a point.
+    public int CountWithin(Vector3 point, float radius)
+    {
+        int n = 0;
+        if (AliveCount == 0) return 0;
+        foreach (var a in alive)
+        {
+            Vector3 d = a.transform.position - point;
+            d.y = 0f;
+            if (d.sqrMagnitude <= radius * radius) n++;
+        }
+        return n;
+    }
+
     private void Start()
     {
         if (template == null || spawnPoints == null || spawnPoints.Length == 0)

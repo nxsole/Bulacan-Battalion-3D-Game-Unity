@@ -52,7 +52,7 @@ public static class LevelMusicSetup
         // If the level already has a PersistentBGM (Level 2 does), use it: its music carries on into the
         // ending cutscene, which fades it out. Otherwise add a plain "Level Music" object.
         AudioSource src = null;
-        var bgm = Object.FindFirstObjectByType<PersistentBGM>(FindObjectsInactive.Include);
+        var bgm = Object.FindAnyObjectByType<PersistentBGM>(FindObjectsInactive.Include);
         if (bgm != null) src = new SerializedObject(bgm).FindProperty("audioSource").objectReferenceValue as AudioSource;
         if (bgm != null && src == null) src = bgm.GetComponent<AudioSource>();
         if (src == null) src = new GameObject(ObjectName).AddComponent<AudioSource>();

@@ -32,6 +32,7 @@ public class PlayerDash : MonoBehaviour
     // 0 = just dashed, 1 = ready again (for a cooldown indicator)
     public float Readiness => cooldown <= 0f ? 1f : Mathf.Clamp01(1f - (readyAt - Time.time) / cooldown);
 
+    // Caches the CharacterController and fills in any player/audio references left empty.
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
@@ -39,6 +40,7 @@ public class PlayerDash : MonoBehaviour
         if (audioSource == null) audioSource = GetComponent<AudioSource>();
     }
 
+    // Starts a dash on the dash key, in the current WASD direction, when off cooldown and the player is alive and in control.
     private void Update()
     {
         if (IsDashing || Time.time < readyAt || !Input.GetKeyDown(dashKey)) return;
@@ -51,6 +53,7 @@ public class PlayerDash : MonoBehaviour
         StartCoroutine(Dash(dir.normalized));
     }
 
+    // Moves the player dashDistance along dir over dashDuration, stopping early if the player is paused or dies.
     private IEnumerator Dash(Vector3 dir)
     {
         IsDashing = true;

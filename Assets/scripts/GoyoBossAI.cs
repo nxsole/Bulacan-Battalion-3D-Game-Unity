@@ -271,6 +271,7 @@ public class GoyoBossAI : MonoBehaviour
         behaviorRoutine = StartCoroutine(RunTrait(trait));
     }
 
+    // Runs a trait to the end, makes him visible and hittable again, then resumes the state machine (aiming if he still has the target, else searching).
     private IEnumerator RunTrait(IEnumerator trait)
     {
         yield return trait;
@@ -302,6 +303,7 @@ public class GoyoBossAI : MonoBehaviour
         return false;
     }
 
+    // The dodge: dive-rolls in dir, invincible for rollDuration, then starts the roll cooldown and settles back onto the NavMesh.
     private IEnumerator DiveRoll(Vector3 dir)
     {
         invincible = true;
@@ -314,6 +316,7 @@ public class GoyoBossAI : MonoBehaviour
         SnapOntoNavMesh();
     }
 
+    // Hooks into the reinforcement spawner so each new soldier is sent at the player, and estimates his run speed.
     private void Start()
     {
         if (reinforcementSpawner != null) reinforcementSpawner.Spawned += SendAtPlayer;
@@ -343,6 +346,7 @@ public class GoyoBossAI : MonoBehaviour
         return distance <= reach;
     }
 
+    // Unhooks from the reinforcement spawner.
     private void OnDestroy()
     {
         if (reinforcementSpawner != null) reinforcementSpawner.Spawned -= SendAtPlayer;
@@ -350,6 +354,7 @@ public class GoyoBossAI : MonoBehaviour
 
     private bool AtOrBelowHalf => currentHealth <= Mathf.CeilToInt(maxHealth * reinforcementAtHealth);
 
+    // Schedules and triggers his periodic ability: the smoke teleport, or the firing line from half health on.
     private void Update()
     {
         if (isDead || busyWithTrait) return;
@@ -360,6 +365,7 @@ public class GoyoBossAI : MonoBehaviour
             StartTrait(AtOrBelowHalf && volleySoldierPrefab != null ? FiringLine() : BattleCryTeleport());
     }
 
+    // Battle cry, calls one of his men, then vanishes in smoke and reappears somewhere around the player.
     private IEnumerator BattleCryTeleport()
     {
         nextTeleportAt = Time.time + Random.Range(teleportCooldownMin, teleportCooldownMax);
@@ -457,6 +463,7 @@ public class GoyoBossAI : MonoBehaviour
         inMeleeRush = false;
     }
 
+    // Distance between two points ignoring height.
     private static float FlatDistance(Vector3 a, Vector3 b)
     {
         a.y = 0f; b.y = 0f;
@@ -630,6 +637,7 @@ public class GoyoBossAI : MonoBehaviour
         return best;
     }
 
+    // Spawns the teleport smoke effect at a point.
     private void SpawnSmoke(Vector3 at)
     {
         if (smokePrefab != null) Instantiate(smokePrefab, at, Quaternion.identity);
@@ -662,6 +670,7 @@ public class GoyoBossAI : MonoBehaviour
 
     private bool frozeRootBody;
 
+    // Puts him and his NavMeshAgent back on the nearest NavMesh point (after a roll moves him off it).
     private void SnapOntoNavMesh()
     {
         if (agent == null || !NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 2f, NavMesh.AllAreas)) return;
@@ -867,6 +876,7 @@ public class GoyoBossAI : MonoBehaviour
     private static readonly int HashWalking = Animator.StringToHash("Walking");
     private static readonly int HashCrouching = Animator.StringToHash("Crouching");
 
+    // Sets full health, caches components, sets up root motion with the NavMeshAgent used only for pathfinding, and collects the ragdoll parts (left off until death).
     private void Awake()
     {
         currentHealth = maxHealth;
@@ -905,6 +915,7 @@ public class GoyoBossAI : MonoBehaviour
         SetRagdollPhysicsEnabled(false);
     }
 
+    // Registers this unit, resets its side's one-time voice flags on a fresh scene, and starts the behaviour state machine.
     private void OnEnable()
     {
         // Statics survive editor Play sessions, so clear this tag's spotted flag when the first
@@ -926,12 +937,14 @@ public class GoyoBossAI : MonoBehaviour
         behaviorRoutine = StartCoroutine(BehaviorLoop());
     }
 
+    // Unregisters this unit and stops its state machine.
     private void OnDisable()
     {
         ActiveEnemies.Remove(this);
         if (behaviorRoutine != null) StopCoroutine(behaviorRoutine);
     }
 
+    // Pushes him away from crowding squadmates while moving, turns his chest so the barrel lines up with his aim, and eases the recoil back.
     private void LateUpdate()
     {
         if (!isDead)
@@ -966,6 +979,7 @@ public class GoyoBossAI : MonoBehaviour
         }
     }
 
+    // Applies the animation's root-motion position (keeping the agent in sync) but keeps our own rotation, and learns his real run speed for the rush check.
     private void OnAnimatorMove()
     {
         // applyRootMotion=true applies BOTH root position and root rotation to the transform.
@@ -1011,6 +1025,7 @@ public class GoyoBossAI : MonoBehaviour
         }
     }
 
+    // Lets the NavMeshAgent path again after StopAgentMovement.
     private void ResumeAgentMovement()
     {
         if (agent != null && agent.isOnNavMesh)
@@ -1019,6 +1034,7 @@ public class GoyoBossAI : MonoBehaviour
         }
     }
 
+    // Blends the head/body look-at toward the target while aiming - or toward the locked aim point once the aim has locked.
     private void OnAnimatorIK(int layerIndex)
     {
         if (animator == null || isDead) return;
@@ -1049,6 +1065,7 @@ public class GoyoBossAI : MonoBehaviour
         animator.SetLookAtPosition(currentLookPos);
     }
 
+    // The state machine: runs the coroutine for the current state, then whichever state it switched to, forever.
     private IEnumerator BehaviorLoop()
     {
         while (true)
@@ -1068,6 +1085,7 @@ public class GoyoBossAI : MonoBehaviour
         }
     }
 
+    // Stands idle, checking for targets; switches to Aim on sight, Investigate on an alert, or PlayerOrder when ordered.
     private IEnumerator StateIdle()
     {
         StopAgentMovement();
@@ -1105,6 +1123,7 @@ public class GoyoBossAI : MonoBehaviour
         }
     }
 
+    // Picks a stance and checks line of sight, then tracks the target for the first part of the aim and locks onto where they were for the rest.
     private IEnumerator StateAim()
     {
         StopAgentMovement();
@@ -1188,6 +1207,7 @@ public class GoyoBossAI : MonoBehaviour
         }
     }
 
+    // Freezes the aim on the target's current (or last known) position; the shot will go down this line.
     private void LockAim()
     {
         aimLocked = true;
@@ -1195,6 +1215,7 @@ public class GoyoBossAI : MonoBehaviour
         lockedAimPoint = at + Vector3.up * targetAimHeight;
     }
 
+    // Fires (down the locked line if locked), then every shotsPerMelee-th shot rushes the player if close enough, otherwise takes cover or kneels to reload.
     private IEnumerator StateFire()
     {
         StopAgentMovement();
@@ -1254,6 +1275,7 @@ public class GoyoBossAI : MonoBehaviour
         }
     }
 
+    // Recoil, muzzle flash and sound, then either the locked-line raycast shot or a normal shot (always hits the player; hitChance against soldiers).
     private void Shoot()
     {
         targetRecoilRotation += new Vector3(
@@ -1340,6 +1362,7 @@ public class GoyoBossAI : MonoBehaviour
         }
     }
 
+    // Kneels and reloads (his damage window), then decides what's next: reposition, keep aiming, carry out an order, or search.
     private IEnumerator StateKneel()
     {
         StopAgentMovement();
@@ -1397,6 +1420,7 @@ public class GoyoBossAI : MonoBehaviour
         }
     }
 
+    // Runs to a better firing position (PickTacticalDestination), then goes back to aiming, an order, or searching.
     private IEnumerator StateReposition()
     {
         Vector3 destination = PickTacticalDestination();
@@ -1458,6 +1482,7 @@ public class GoyoBossAI : MonoBehaviour
         }
     }
 
+    // Runs to the cover point picked in StateFire, then reloads (Kneel) there or wherever he got to before timing out.
     private IEnumerator StateTakeCover()
     {
         Vector3 destination = pendingCoverDestination;
@@ -1685,6 +1710,7 @@ public class GoyoBossAI : MonoBehaviour
         return candidate;
     }
 
+    // This unit's rank by distance to the order point among squadmates sent to the same point (its formation slot).
     private int OrderSlotIndex()
     {
         List<GoyoBossAI> group = new List<GoyoBossAI>();
@@ -1704,6 +1730,7 @@ public class GoyoBossAI : MonoBehaviour
         return group.IndexOf(this);
     }
 
+    // Offset of formation slot index on a sunflower spiral, so slots are evenly spread at least spacing apart.
     private Vector3 SpiralOffset(int index, float spacing)
     {
         float radius = spacing * Mathf.Sqrt(index + 0.5f);
@@ -1769,6 +1796,7 @@ public class GoyoBossAI : MonoBehaviour
         return candidate;
     }
 
+    // Goes to the position he was alerted about (by a squadmate or being shot), engaging anyone spotted on the way, then searches the area.
     private IEnumerator StateInvestigate()
     {
         Vector3 destination = alertedPosition;
@@ -1825,6 +1853,7 @@ public class GoyoBossAI : MonoBehaviour
         state = hasOrder ? State.PlayerOrder : State.Search;
     }
 
+    // For searchDuration, moves to random spots around the last known target position and pauses, watching for targets, alerts or orders.
     private IEnumerator StateSearch()
     {
         float endTime = Time.time + searchDuration;
@@ -1914,6 +1943,7 @@ public class GoyoBossAI : MonoBehaviour
         state = hasOrder ? State.PlayerOrder : State.Idle;
     }
 
+    // A random reachable point around the last known target position (or himself) to search.
     private Vector3 PickSearchDestination()
     {
         Vector3 searchCenter = (lastKnownPosition != Vector3.zero) ? lastKnownPosition : transform.position;
@@ -1930,6 +1960,7 @@ public class GoyoBossAI : MonoBehaviour
         return transform.position;
     }
 
+    // If a target is in sight, locks on, raises the alarm and switches to Aim; returns true when it did.
     private bool TryAcquireDirectSight()
     {
         Transform found = FindTarget();
@@ -2004,6 +2035,7 @@ public class GoyoBossAI : MonoBehaviour
         }
     }
 
+    // Waits the given delay plus a random stagger, then plays one random reply cry.
     private System.Collections.IEnumerator ReplyCryRoutine(float delay)
     {
         // Per-unit random stagger on top of the shared base delay, so voices don't all hit on the
@@ -2058,6 +2090,7 @@ public class GoyoBossAI : MonoBehaviour
         PlayVoiceWithPitchVariation(clip, battleCryVolume);
     }
 
+    // Tells nearby squadmates (within alertShareRadius) where the target is.
     private void BroadcastAlert(Transform target)
     {
         if (target == null) return;
@@ -2086,12 +2119,14 @@ public class GoyoBossAI : MonoBehaviour
         orderPoint = point;
     }
 
+    // Drops the current move order and stops moving if he was carrying it out.
     public void CancelMoveOrder()
     {
         hasOrder = false;
         if (state == State.PlayerOrder) StopAgentMovement();
     }
 
+    // Tells him where a target is; only taken up while idle or searching, which then investigate it.
     public void ReceiveAlert(Transform target, Vector3 position)
     {
         if (state != State.Idle && state != State.Search) return;
@@ -2102,12 +2137,14 @@ public class GoyoBossAI : MonoBehaviour
         alertedTime = Time.time;
     }
 
+    // Forgets any pending alert.
     private void ClearAlert()
     {
         alertedTarget = null;
         alertedTime = -Mathf.Infinity;
     }
 
+    // Sets the crouch animation and resizes the body collider(s) to match.
     private void SetCrouching(bool crouched)
     {
         animator.SetBool(HashCrouching, crouched);
@@ -2132,6 +2169,7 @@ public class GoyoBossAI : MonoBehaviour
         }
     }
 
+    // Switches the ragdoll limb rigidbodies and colliders on (dead) or off (alive).
     private void SetRagdollPhysicsEnabled(bool active)
     {
         foreach (var rb in ragdollRigidbodies)
@@ -2147,6 +2185,7 @@ public class GoyoBossAI : MonoBehaviour
         }
     }
 
+    // Kills the boss: stops his AI, notifies listeners, plays a death sound, switches to ragdoll, and destroys him after ragdollDisappearDelay.
     public void Die()
     {
         if (isDead) return;
@@ -2183,6 +2222,7 @@ public class GoyoBossAI : MonoBehaviour
         Destroy(gameObject, ragdollDisappearDelay);
     }
 
+    // Once the ragdoll has settled, turns off its colliders and freezes its rigidbodies so the corpse is visual only.
     private IEnumerator DisableCorpseCollidersAfterSettle()
     {
         if (corpseColliderSettleDelay > 0f) yield return new WaitForSeconds(corpseColliderSettleDelay);
@@ -2205,6 +2245,7 @@ public class GoyoBossAI : MonoBehaviour
         }
     }
 
+    // Moves the body and ragdoll parts onto the Corpse layer so living units can walk over it.
     private void MoveRagdollToCorpseLayer()
     {
         int corpseLayer = LayerMask.NameToLayer(corpseLayerName);
@@ -2274,6 +2315,7 @@ public class GoyoBossAI : MonoBehaviour
         else Debug.LogWarning(sb.ToString().TrimEnd() + "\n=> Fix: Edit > Project Settings > Physics, and UNCHECK each pair marked BAD above.", this);
     }
 
+    // Waits until the Animator reaches the named state, or stateWaitTimeout passes.
     private IEnumerator WaitUntilInState(string stateName, int layer = 0)
     {
         float t = 0f;
@@ -2289,6 +2331,7 @@ public class GoyoBossAI : MonoBehaviour
     // window don't both independently claim the same spot and end up stacked together.
     public Vector3 PlanningPosition => (agent != null && agent.hasPath) ? agent.destination : transform.position;
 
+    // Scores random candidate spots (around the target at combat range, or around him) for spacing from squadmates, line of sight, flanking angle and range, and returns the best.
     private Vector3 PickTacticalDestination()
     {
         Vector3 best = transform.position;
@@ -2395,6 +2438,7 @@ public class GoyoBossAI : MonoBehaviour
         return best;
     }
 
+    // True if standing at point wouldn't put his head inside a wall or obstacle.
     private bool HasWallClearance(Vector3 point)
     {
         if (lineOfSightBlockers.value == 0) return true;
@@ -2402,6 +2446,7 @@ public class GoyoBossAI : MonoBehaviour
         return !IsEmbeddedInObstruction(checkPoint, wallClearanceDistance);
     }
 
+    // True if a sphere at point overlaps any line-of-sight blocker (other than himself).
     private bool IsEmbeddedInObstruction(Vector3 point, float radius)
     {
         Collider[] hits = Physics.OverlapSphere(point, radius, lineOfSightBlockers);
@@ -2413,6 +2458,7 @@ public class GoyoBossAI : MonoBehaviour
         return false;
     }
 
+    // Crouch if the target can still be seen from crouched eye height, otherwise stand to shoot.
     private bool DetermineCrouchStance()
     {
         if (currentTarget == null || lineOfSightBlockers.value == 0) return true;
@@ -2424,6 +2470,7 @@ public class GoyoBossAI : MonoBehaviour
         return !Physics.Linecast(crouchedEye, targetPoint, lineOfSightBlockers);
     }
 
+    // True if the target is visible from the eye height of the current stance.
     private bool HasLineOfSightAtCurrentStance()
     {
         if (currentTarget == null) return false;
@@ -2447,6 +2494,7 @@ public class GoyoBossAI : MonoBehaviour
         return c != null && c.gameObject.tag == tag;
     }
 
+    // True if c carries any of this unit's target tags (checked with HasTag).
     private bool IsHostile(Component c)
     {
         if (c == null || targetTags == null) return false;
@@ -2457,6 +2505,7 @@ public class GoyoBossAI : MonoBehaviour
         return false;
     }
 
+    // The nearest hostile within detectionRadius that's inside the field of view and in clear line of sight, or null.
     private Transform FindTarget()
     {
         Collider[] hits = Physics.OverlapSphere(transform.position, detectionRadius);
@@ -2495,12 +2544,14 @@ public class GoyoBossAI : MonoBehaviour
         return best;
     }
 
+    // True while the current target still exists and is within detection range.
     private bool TargetStillValid()
     {
         if (currentTarget == null) return false;
         return Vector3.Distance(transform.position, currentTarget.position) <= detectionRadius;
     }
 
+    // Turns smoothly toward the target (plus the aim offset).
     private void FaceTarget()
     {
         if (currentTarget == null) return;
@@ -2512,6 +2563,7 @@ public class GoyoBossAI : MonoBehaviour
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, turnSpeed * Time.deltaTime);
     }
 
+    // Turns instantly to face the target (plus the aim offset), used right before an unlocked shot.
     private void SnapFaceTarget()
     {
         if (currentTarget == null) return;
@@ -2522,6 +2574,7 @@ public class GoyoBossAI : MonoBehaviour
         transform.rotation = Quaternion.LookRotation(dir) * Quaternion.Euler(0f, aimRotationOffsetDegrees, 0f);
     }
 
+    // Turns him along the NavMeshAgent's path, nudged slightly away from crowding squadmates; root motion then runs him forward.
     private void SteerTowardAgentPath()
     {
         if (agent == null || agent.pathPending || agent.remainingDistance < agent.stoppingDistance) return;
@@ -2583,6 +2636,7 @@ public class GoyoBossAI : MonoBehaviour
         return separation;
     }
 
+    // Draws the detection and search radii in the Scene view.
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;

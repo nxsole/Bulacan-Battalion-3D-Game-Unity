@@ -23,6 +23,7 @@ public class BossHealthBar : MonoBehaviour
     private CanvasGroup group;
     private float shownFill = 1f, shownTrail = 1f, trailWaitUntil, nextSearch;
 
+    // Starts the bar hidden and sets the boss name label.
     private void Awake()
     {
         group = GetComponent<CanvasGroup>();
@@ -30,6 +31,7 @@ public class BossHealthBar : MonoBehaviour
         if (nameText != null) nameText.text = bossName;
     }
 
+    // Finds the boss if needed, fades the bar in/out, updates the fill and catch-up trail, and shows the reinforcement count.
     private void Update()
     {
         if (boss == null && Time.unscaledTime >= nextSearch)
@@ -60,6 +62,7 @@ public class BossHealthBar : MonoBehaviour
 
     private string shownLabel;
 
+    // Stretches a bar image to fill fraction t (0-1) of its parent's width.
     private static void SetWidth(RectTransform rt, float t)
     {
         if (rt == null) return;

@@ -62,6 +62,7 @@ public class AllyOrderModule : MonoBehaviour
     // claim the same spot before either unit has actually moved.
     public Vector3 PlanningPosition => (agent != null && agent.hasPath) ? agent.destination : transform.position;
 
+    // Sets up the NavMeshAgent's speed and stopping distance, and logs the unit's components when debugging.
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -76,6 +77,7 @@ public class AllyOrderModule : MonoBehaviour
         }
     }
 
+    // Keep the shared list of order-capable allies in step with which ones are active.
     private void OnEnable() => AllOrderedAllies.Add(this);
     private void OnDisable() => AllOrderedAllies.Remove(this);
 
@@ -114,6 +116,7 @@ public class AllyOrderModule : MonoBehaviour
         orderRoutine = StartCoroutine(ExecuteOrder());
     }
 
+    // Drops the current order and stops the unit where it is.
     public void CancelOrder()
     {
         hasOrder = false;
@@ -121,6 +124,7 @@ public class AllyOrderModule : MonoBehaviour
         if (agent != null && agent.isOnNavMesh) agent.ResetPath();
     }
 
+    // Repeatedly recomputes and sets the destination until the unit arrives, so it reacts to enemies moving.
     private IEnumerator ExecuteOrder()
     {
         while (hasOrder)
@@ -154,6 +158,7 @@ public class AllyOrderModule : MonoBehaviour
         }
     }
 
+    // This unit's target: its formation slot around the order point, or a firing line short of the nearest enemy if the point is contested.
     private Vector3 ComputeDestination()
     {
         Vector3 formationOffset = SpiralOffset(mySquadIndex, formationSpacing);
@@ -185,6 +190,7 @@ public class AllyOrderModule : MonoBehaviour
         return candidate;
     }
 
+    // Offset of formation slot index on a sunflower spiral, so slots are evenly spread at least spacing apart.
     private Vector3 SpiralOffset(int index, float spacing)
     {
         float radius = spacing * Mathf.Sqrt(index + 0.5f);
@@ -192,6 +198,7 @@ public class AllyOrderModule : MonoBehaviour
         return new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * radius;
     }
 
+    // Finds the closest enemy within contestedCheckRadius of point; returns false if there is none.
     private bool TryFindNearestEnemy(Vector3 point, out Vector3 enemyPosition)
     {
         enemyPosition = Vector3.zero;
@@ -254,6 +261,7 @@ public class AllyOrderModule : MonoBehaviour
         return candidate;
     }
 
+    // Draws the order point and its contested-check radius in the Scene view.
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.cyan;

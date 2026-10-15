@@ -52308,7 +52308,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 24300002, guid: 5caf712d952c331418664921df6da306, type: 2}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: 88007617a1d6d1445a1ca7e401a9ca14, type: 3}
+  m_Resource: {fileID: 0}
   m_PlayOnAwake: 1
   m_Volume: 0.51
   m_Pitch: 1
@@ -151484,135 +151484,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6786704563919474195, guid: ff0b0a3d7ae7a9e4f8505795785ad853, type: 3}
   m_PrefabInstance: {fileID: 297606111}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &954978931
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 954978933}
-  - component: {fileID: 954978932}
-  m_Layer: 0
-  m_Name: Level Music
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!82 &954978932
-AudioSource:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 954978931}
-  m_Enabled: 1
-  serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 24300002, guid: 5caf712d952c331418664921df6da306, type: 2}
-  m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: fcbd9d3fc13f36440a97f0772b19be9a, type: 3}
-  m_PlayOnAwake: 1
-  m_Volume: 0.3
-  m_Pitch: 1
-  Loop: 1
-  Mute: 0
-  Spatialize: 0
-  SpatializePostEffects: 0
-  Priority: 0
-  DopplerLevel: 1
-  MinDistance: 1
-  MaxDistance: 500
-  Pan2D: 0
-  rolloffMode: 0
-  BypassEffects: 0
-  BypassListenerEffects: 0
-  BypassReverbZones: 0
-  rolloffCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    - serializedVersion: 3
-      time: 1
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  panLevelCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  spreadCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  reverbZoneMixCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
---- !u!4 &954978933
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 954978931}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &955405147
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -161982,6 +161853,7 @@ MonoBehaviour:
   winSecondTextDelay: 0.6
   winSecondTextHold: 3
   winSecondText: {fileID: 441349364}
+  overrunMessage: The camp is overrun. The pass is lost.
   stingerSource: {fileID: 0}
   mainMenuSceneName: Level 2 Ending Cutscene
   loseSceneName: 
@@ -168960,7 +168832,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f382212a09fc1234cb7a95baa4c62526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Level2SurvivalTimer
-  duration: 10
+  duration: 90
   timerText: {fileID: 973210230}
   label: HOLD THE PASS
   warningTime: 30
@@ -214541,7 +214413,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Level2Sprint
   player: {fileID: 1354717343}
   sprintKey: 304
-  sprintBonusSpeed: 3.2
+  sprintBonusSpeed: 12.2
   rampTime: 0.25
   sprintInAnyDirection: 0
   fovKick: 6
@@ -249071,6 +248943,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1566851590}
+  - component: {fileID: 1566851591}
   m_Layer: 0
   m_Name: Camp Centre
   m_TagString: Untagged
@@ -249093,6 +248966,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1763824292}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1566851591
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1566851589}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ffbf631e3ed9771c179dfe88e3dd092, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Level2CampOverrun
+  radius: 10
+  enemiesNeeded: 3
+  checkInterval: 0.5
+  enemyTag: Enemy
+  outcomeManager: {fileID: 0}
+  spawners: []
+  director: {fileID: 0}
+  timer: {fileID: 0}
+  player: {fileID: 0}
 --- !u!1001 &1567140326
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -257004,17 +256898,17 @@ AudioSource:
   m_GameObject: {fileID: 1617665980}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: 24300002, guid: 5caf712d952c331418664921df6da306, type: 2}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: 88007617a1d6d1445a1ca7e401a9ca14, type: 3}
+  m_Resource: {fileID: 8300000, guid: fcbd9d3fc13f36440a97f0772b19be9a, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.3
   m_Pitch: 1
-  Loop: 0
+  Loop: 1
   Mute: 0
   Spatialize: 0
   SpatializePostEffects: 0
-  Priority: 128
+  Priority: 0
   DopplerLevel: 1
   MinDistance: 1
   MaxDistance: 500
@@ -324076,7 +323970,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2039964721}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7a5ac11cc976e418e8d13136b07e1f52, type: 3}
   m_Name: 
@@ -340318,4 +340212,3 @@ SceneRoots:
   - {fileID: 465154890}
   - {fileID: 120570148}
   - {fileID: 1617665983}
-  - {fileID: 954978933}

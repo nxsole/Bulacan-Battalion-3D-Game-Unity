@@ -42,6 +42,7 @@ public class PlayerOrderIssuer : MonoBehaviour
     [Tooltip("Logs to the Console every time an order is issued, and why it might not have been (no raycast hit, no allies found, etc). Turn off once everything's confirmed working.")]
     [SerializeField] private bool debugLogging = true;
 
+    // Falls back to the main camera and makes sure there's an AudioSource for the voice lines.
     private void Awake()
     {
         if (playerCamera == null) playerCamera = Camera.main;
@@ -53,6 +54,7 @@ public class PlayerOrderIssuer : MonoBehaviour
         }
     }
 
+    // Issues an order when the order key is pressed.
     private void Update()
     {
         if (Input.GetKeyDown(orderKey))
@@ -61,6 +63,7 @@ public class PlayerOrderIssuer : MonoBehaviour
         }
     }
 
+    // Raycasts to where the player is looking and sends every eligible ally there, with an optional marker and voice line.
     private void TryIssueOrder()
     {
         if (playerCamera == null)
@@ -99,6 +102,7 @@ public class PlayerOrderIssuer : MonoBehaviour
         PlayOrderVoiceLine();
     }
 
+    // Plays a random order voice clip, if any are assigned.
     private void PlayOrderVoiceLine()
     {
         if (voiceAudioSource == null || orderVoiceClips == null || orderVoiceClips.Length == 0) return;
@@ -107,6 +111,7 @@ public class PlayerOrderIssuer : MonoBehaviour
         if (clip != null) voiceAudioSource.PlayOneShot(clip, orderVoiceVolume);
     }
 
+    // Collects the active ally EnemyAIs (optionally only those near the player) that should receive the order.
     private List<EnemyAI> GatherSquad()
     {
         var result = new List<EnemyAI>();

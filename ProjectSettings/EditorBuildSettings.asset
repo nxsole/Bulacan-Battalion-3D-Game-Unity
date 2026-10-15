@@ -26,6 +26,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Level3 IntroCutscene.unity
     guid: 989aed4403dc76f459cf5fd8c3229a8f
+  - enabled: 1
+    path: Assets/Scenes/Level 3 Ending cutscene.unity
+    guid: f6ecff45d2e74b646b23fe9e98938726
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

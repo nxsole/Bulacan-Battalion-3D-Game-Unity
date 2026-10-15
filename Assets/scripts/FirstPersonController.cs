@@ -168,12 +168,14 @@ public class FirstPersonController : MonoBehaviour
     private static readonly int HashFire = Animator.StringToHash("Fire");
     private static readonly int HashReload = Animator.StringToHash("Reload");
 
+    // Editor callback when inspector values change: clears the shuffled death-message bag so edits to the list take effect.
     private void OnValidate()
     {
         deathMessageBag.Clear();
         lastDeathMessage = null;
     }
 
+    // Initialises ammo, health, camera heights and the respawn point, hides the death/vignette/prompt UI and the weapon, finds the prompt's canvas, and locks the cursor.
     private void Start()
     {
         controller = GetComponent<CharacterController>();
@@ -235,6 +237,7 @@ public class FirstPersonController : MonoBehaviour
         Cursor.visible = false;
     }
 
+    // Per-frame player loop (skipped while dead): look, crouch/bob, move, then either weapon handling or looking for the weapon pickup.
     private void Update()
     {
         if (isDead) return;
@@ -254,6 +257,7 @@ public class FirstPersonController : MonoBehaviour
         }
     }
 
+    // Turns the body with mouse X and tilts the camera with mouse Y (clamped), including the hit camera-kick offset.
     private void HandleMouseLook()
     {
         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
@@ -266,6 +270,7 @@ public class FirstPersonController : MonoBehaviour
         transform.Rotate(Vector3.up * mouseX);
     }
 
+    // Smoothly resizes the collider for crouching (hold C) and moves the camera to standing/crouch height with walking head bob.
     private void HandleCrouchAndBob()
     {
         isCrouching = Input.GetKey(KeyCode.C);
@@ -303,6 +308,7 @@ public class FirstPersonController : MonoBehaviour
         playerCamera.localPosition = camPos;
     }
 
+    // WASD movement at walk or crouch speed, plus gravity.
     private void HandleMovement()
     {
         if (controller.isGrounded && velocity.y < 0)
@@ -325,6 +331,7 @@ public class FirstPersonController : MonoBehaviour
     [Header("DEBUG (turn off once working)")]
     [SerializeField] private bool debugPickupLogging = true;
 
+    // Before the weapon is picked up: checks whether the player is looking at it, toggles the prompt and highlight, and picks it up on E.
     private void HandleWeaponPickup()
     {
         bool foundPickup = false;
@@ -479,6 +486,7 @@ public class FirstPersonController : MonoBehaviour
         }
     }
 
+    // Pulses the hovered weapon's emission and base-colour tint each frame while highlighted.
     private void UpdateHighlightPulse()
     {
         if (!enableHighlight || !highlightActive || pickupMaterials == null) return;
@@ -578,12 +586,14 @@ public class FirstPersonController : MonoBehaviour
         }
     }
 
+    // Shows or hides the "Press E" prompt.
     private void ShowInteractionPrompt(bool show)
     {
         if (interactionPromptCanvasGroup == null) return;
         interactionPromptCanvasGroup.alpha = show ? 1f : 0f;
     }
 
+    // Gives the player the weapon: fills ammo, shows the held weapon, hides the pickup and its prompt/highlight.
     private void PickUpWeapon()
     {
         hasWeapon = true;
@@ -605,6 +615,7 @@ public class FirstPersonController : MonoBehaviour
         isLookingAtPickup = false;
     }
 
+    // Moves the weapon between hip and aim (right mouse) positions, adding mouse sway and a gentle idle/aim drift.
     private void HandleAimingAndSway()
     {
         if (weaponTransform == null) return;
@@ -642,6 +653,7 @@ public class FirstPersonController : MonoBehaviour
         weaponTransform.localPosition = Vector3.Lerp(weaponTransform.localPosition, targetPosition, Time.deltaTime * aimSpeed);
     }
 
+    // Fires on left click when loaded (auto-reloads when empty) and reloads on R.
     private void HandleShootingAndReloading()
     {
         if (weaponAnimator == null) return;
@@ -667,6 +679,7 @@ public class FirstPersonController : MonoBehaviour
         }
     }
 
+    // The shot itself: a ray from the camera that kills any EnemyAI it hits, or spawns an impact effect on anything else.
     private void CastRay()
     {
         Ray ray = new Ray(playerCamera.position, playerCamera.forward);
@@ -687,6 +700,7 @@ public class FirstPersonController : MonoBehaviour
         }
     }
 
+    // Plays the gunshot sound and spawns the muzzle flash.
     private void ShootFX()
     {
         if (fireSound != null && audioSource != null)
@@ -701,6 +715,7 @@ public class FirstPersonController : MonoBehaviour
         }
     }
 
+    // Plays the reload animation and refills ammo after reloadDuration.
     private IEnumerator ReloadRoutine()
     {
         isReloading = true;
@@ -712,6 +727,7 @@ public class FirstPersonController : MonoBehaviour
         isReloading = false;
     }
 
+    // Called by enemies when they hit the player: loses one health point, then either starts the death sequence or the low-health state.
     public void TakeHit()
     {
         if (isDead || isInvulnerable) return;
@@ -733,6 +749,7 @@ public class FirstPersonController : MonoBehaviour
         }
     }
 
+    // Brief invulnerability after a hit so one burst can't take several health points at once.
     private IEnumerator HitCooldownRoutine()
     {
         isInvulnerable = true;
@@ -740,11 +757,13 @@ public class FirstPersonController : MonoBehaviour
         isInvulnerable = false;
     }
 
+    // Sets where the player respawns after dying (called by checkpoints).
     public void RegisterRespawnPoint(Transform point)
     {
         currentRespawnPoint = point;
     }
 
+    // Plays the getting-hit sound.
     private void PlayGettingShotSound()
     {
         if (audioSource != null && gettingShotSound != null)
@@ -753,6 +772,7 @@ public class FirstPersonController : MonoBehaviour
         }
     }
 
+    // Restarts the camera kick that jolts the view upward when hit.
     private void TriggerCameraKick()
     {
         if (cameraKickCoroutine != null)
@@ -762,6 +782,7 @@ public class FirstPersonController : MonoBehaviour
         cameraKickCoroutine = StartCoroutine(CameraKickRoutine());
     }
 
+    // Applies the camera kick and eases it back to zero.
     private IEnumerator CameraKickRoutine()
     {
         cameraKickOffset = hitCameraKickAmount;
@@ -776,6 +797,7 @@ public class FirstPersonController : MonoBehaviour
         cameraKickCoroutine = null;
     }
 
+    // Starts the low-health heartbeat loop and vignette, and (re)starts the timer that regenerates health.
     private void EnterLowHealthState()
     {
         if (lowHealthAudioSource != null && lowHealthSound != null)
@@ -804,6 +826,7 @@ public class FirstPersonController : MonoBehaviour
         lowHealthRegenCoroutine = StartCoroutine(LowHealthRegenRoutine());
     }
 
+    // Pulses the red low-health vignette until stopped.
     private IEnumerator LowHealthVignetteRoutine()
     {
         while (true)
@@ -814,6 +837,7 @@ public class FirstPersonController : MonoBehaviour
         }
     }
 
+    // Stops the vignette pulse and hides it.
     private void StopLowHealthVignette()
     {
         if (lowHealthVignetteCoroutine != null)
@@ -828,6 +852,7 @@ public class FirstPersonController : MonoBehaviour
         }
     }
 
+    // After lowHealthRegenDelay without dying, restores full health and clears the low-health effects.
     private IEnumerator LowHealthRegenRoutine()
     {
         yield return new WaitForSeconds(lowHealthRegenDelay);
@@ -838,6 +863,7 @@ public class FirstPersonController : MonoBehaviour
         lowHealthRegenCoroutine = null;
     }
 
+    // Cancels any pending regen and clears the low-health audio and vignette.
     private void StopLowHealthRegen()
     {
         if (lowHealthRegenCoroutine != null)
@@ -850,6 +876,7 @@ public class FirstPersonController : MonoBehaviour
         StopLowHealthVignette();
     }
 
+    // Stops the low-health heartbeat sound.
     private void StopLowHealthAudio()
     {
         if (lowHealthAudioSource != null && lowHealthAudioSource.isPlaying)
@@ -858,6 +885,7 @@ public class FirstPersonController : MonoBehaviour
         }
     }
 
+    // Shows the death screen with a countdown, then respawns the player with a short invulnerability window.
     private IEnumerator DeathSequence()
     {
         isDead = true;
@@ -888,6 +916,7 @@ public class FirstPersonController : MonoBehaviour
         }
     }
 
+    // Makes the player invulnerable for hitInvulnerabilityDuration after respawning.
     private IEnumerator InvulnerabilityWindow()
     {
         isInvulnerable = true;
@@ -895,6 +924,7 @@ public class FirstPersonController : MonoBehaviour
         isInvulnerable = false;
     }
 
+    // Shows the death screen with a death message, muffles the audio and plays the death sound.
     private void ShowDeathScreen()
     {
         if (deathScreenCanvasGroup == null) return;
@@ -920,6 +950,7 @@ public class FirstPersonController : MonoBehaviour
         }
     }
 
+    // Takes the next message from the shuffled bag, refilling it when empty, so messages don't repeat until all have been shown.
     private string GetNextDeathMessage()
     {
         if (deathMessageBag.Count == 0)
@@ -935,6 +966,7 @@ public class FirstPersonController : MonoBehaviour
         return message;
     }
 
+    // Refills and shuffles the death-message bag, making sure the last message shown doesn't come up first again.
     private void RefillDeathMessageBag()
     {
         deathMessageBag.Clear();
@@ -953,6 +985,7 @@ public class FirstPersonController : MonoBehaviour
         }
     }
 
+    // Hides the death screen, restores normal audio and stops the death sound.
     private void HideDeathScreen()
     {
         if (deathScreenCanvasGroup == null) return;
@@ -972,6 +1005,7 @@ public class FirstPersonController : MonoBehaviour
         }
     }
 
+    // Teleports the player to the current respawn point and resets ammo, health and hit effects.
     private void RespawnPlayer()
     {
         controller.enabled = false;

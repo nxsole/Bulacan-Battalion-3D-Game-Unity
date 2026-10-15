@@ -11,6 +11,7 @@ public class AllyPath : MonoBehaviour
 
     public int Count => ResolvedPoints().Count;
 
+    // World position of waypoint index (clamped to the valid range).
     public Vector3 GetPoint(int index)
     {
         var pts = ResolvedPoints();
@@ -18,6 +19,7 @@ public class AllyPath : MonoBehaviour
         return pts[index].position;
     }
 
+    // The waypoints in order: the explicit points list if filled in, otherwise this object's children.
     private List<Transform> ResolvedPoints()
     {
         if (points != null && points.Count > 0) return points;
@@ -28,6 +30,7 @@ public class AllyPath : MonoBehaviour
         return childPts;
     }
 
+    // Draws each waypoint and the lines between them in the Scene view.
     private void OnDrawGizmos()
     {
         var pts = ResolvedPoints();

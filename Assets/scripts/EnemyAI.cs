@@ -236,6 +236,7 @@ public class EnemyAI : MonoBehaviour
     private static readonly int HashWalking = Animator.StringToHash("Walking");
     private static readonly int HashCrouching = Animator.StringToHash("Crouching");
 
+    // Caches components, sets up root motion with the NavMeshAgent used only for pathfinding, and collects the ragdoll parts (left off until death).
     private void Awake()
     {
         animator = GetComponent<Animator>();
@@ -273,6 +274,7 @@ public class EnemyAI : MonoBehaviour
         SetRagdollPhysicsEnabled(false);
     }
 
+    // Registers this unit, resets its side's one-time voice flags on a fresh scene, and starts the behaviour state machine.
     private void OnEnable()
     {
         // Statics survive editor Play sessions, so clear this tag's spotted flag when the first
@@ -294,12 +296,14 @@ public class EnemyAI : MonoBehaviour
         behaviorRoutine = StartCoroutine(BehaviorLoop());
     }
 
+    // Unregisters this unit and stops its state machine.
     private void OnDisable()
     {
         ActiveEnemies.Remove(this);
         if (behaviorRoutine != null) StopCoroutine(behaviorRoutine);
     }
 
+    // Pushes the unit away from crowding squadmates while it's moving, and eases the weapon's recoil back to rest.
     private void LateUpdate()
     {
         if (!isDead)
@@ -332,6 +336,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    // Applies the animation's root-motion position (keeping the agent in sync) but keeps the rotation set by our own turning code.
     private void OnAnimatorMove()
     {
         // applyRootMotion=true applies BOTH root position and root rotation to the transform.
@@ -370,6 +375,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    // Lets the NavMeshAgent path again after StopAgentMovement.
     private void ResumeAgentMovement()
     {
         if (agent != null && agent.isOnNavMesh)
@@ -378,6 +384,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    // Blends the head/body look-at toward the target (or its last known position) while aiming or firing.
     private void OnAnimatorIK(int layerIndex)
     {
         if (animator == null || isDead) return;
@@ -402,6 +409,7 @@ public class EnemyAI : MonoBehaviour
         animator.SetLookAtPosition(currentLookPos);
     }
 
+    // The state machine: runs the coroutine for the current state, then whichever state it switched to, forever.
     private IEnumerator BehaviorLoop()
     {
         while (true)
@@ -421,6 +429,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    // Stands idle, checking for targets; switches to Aim on sight, Investigate on an ally's alert, or PlayerOrder when ordered.
     private IEnumerator StateIdle()
     {
         StopAgentMovement();
@@ -458,6 +467,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    // Picks a stance, checks line of sight, then tracks the target for a random aim time before firing (a new player order interrupts).
     private IEnumerator StateAim()
     {
         StopAgentMovement();
@@ -514,6 +524,7 @@ public class EnemyAI : MonoBehaviour
         state = State.Fire;
     }
 
+    // Faces the target and fires one shot, then goes to cover (if enabled and found) or kneels to reload.
     private IEnumerator StateFire()
     {
         StopAgentMovement();
@@ -558,6 +569,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    // Recoil, muzzle flash and sound, then the hit roll: hits the player (playerHitChance) or kills an opposing soldier (hitChance).
     private void Shoot()
     {
         targetRecoilRotation += new Vector3(
@@ -593,6 +605,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    // Kneels and reloads, then decides what's next: reposition, keep aiming, carry out an order, or search for a lost target.
     private IEnumerator StateKneel()
     {
         StopAgentMovement();
@@ -650,6 +663,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    // Crouch-walks to a better firing position (PickTacticalDestination), then goes back to aiming, an order, or searching.
     private IEnumerator StateReposition()
     {
         Vector3 destination = PickTacticalDestination();
@@ -711,6 +725,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    // Crouch-walks to the cover point picked in StateFire, then reloads (Kneel) there or wherever it got to before timing out.
     private IEnumerator StateTakeCover()
     {
         Vector3 destination = pendingCoverDestination;
@@ -969,6 +984,7 @@ public class EnemyAI : MonoBehaviour
         return orderSlot;
     }
 
+    // True if other is on our side and carrying out an order to the same point as us.
     private bool IsSameOrderSquadmate(EnemyAI other)
     {
         return other.orderSlot >= 0
@@ -976,6 +992,7 @@ public class EnemyAI : MonoBehaviour
             && Vector3.Distance(other.orderPoint, orderPoint) <= 0.5f;
     }
 
+    // Offset of formation slot index on a sunflower spiral, so slots are evenly spread at least spacing apart.
     private Vector3 SpiralOffset(int index, float spacing)
     {
         float radius = spacing * Mathf.Sqrt(index + 0.5f);
@@ -1044,6 +1061,7 @@ public class EnemyAI : MonoBehaviour
         return candidate;
     }
 
+    // Walks to the position an ally alerted us about, engaging anyone spotted on the way, then searches the area.
     private IEnumerator StateInvestigate()
     {
         Vector3 destination = alertedPosition;
@@ -1100,6 +1118,7 @@ public class EnemyAI : MonoBehaviour
         state = hasOrder ? State.PlayerOrder : State.Search;
     }
 
+    // For searchDuration, walks to random spots around the last known target position and pauses, watching for targets, alerts or orders.
     private IEnumerator StateSearch()
     {
         float endTime = Time.time + searchDuration;
@@ -1189,6 +1208,7 @@ public class EnemyAI : MonoBehaviour
         state = hasOrder ? State.PlayerOrder : State.Idle;
     }
 
+    // A random reachable point around the last known target position (or ourselves) to search.
     private Vector3 PickSearchDestination()
     {
         Vector3 searchCenter = (lastKnownPosition != Vector3.zero) ? lastKnownPosition : transform.position;
@@ -1205,6 +1225,7 @@ public class EnemyAI : MonoBehaviour
         return transform.position;
     }
 
+    // If a target is in sight, locks on, raises the alarm and switches to Aim; returns true when it did.
     private bool TryAcquireDirectSight()
     {
         Transform found = FindTarget();
@@ -1279,6 +1300,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    // Waits the given delay plus a random stagger, then plays one random reply cry.
     private System.Collections.IEnumerator ReplyCryRoutine(float delay)
     {
         // Per-unit random stagger on top of the shared base delay, so voices don't all hit on the
@@ -1333,6 +1355,7 @@ public class EnemyAI : MonoBehaviour
         PlayVoiceWithPitchVariation(clip, battleCryVolume);
     }
 
+    // Tells nearby squadmates (within alertShareRadius) where the target is.
     private void BroadcastAlert(Transform target)
     {
         if (target == null) return;
@@ -1362,12 +1385,14 @@ public class EnemyAI : MonoBehaviour
         orderSlot = -1; // release the old point's slot; a fresh one is claimed for this point
     }
 
+    // Drops the current player order and stops moving if the unit was carrying it out.
     public void CancelMoveOrder()
     {
         hasOrder = false;
         if (state == State.PlayerOrder) StopAgentMovement();
     }
 
+    // Called by a squadmate that spotted a target; only taken up while idle or searching, which then investigate it.
     public void ReceiveAlert(Transform target, Vector3 position)
     {
         if (state != State.Idle && state != State.Search) return;
@@ -1378,12 +1403,14 @@ public class EnemyAI : MonoBehaviour
         alertedTime = Time.time;
     }
 
+    // Forgets any pending alert.
     private void ClearAlert()
     {
         alertedTarget = null;
         alertedTime = -Mathf.Infinity;
     }
 
+    // Sets the crouch animation and resizes the body collider(s) to match.
     private void SetCrouching(bool crouched)
     {
         animator.SetBool(HashCrouching, crouched);
@@ -1408,6 +1435,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    // Switches the ragdoll limb rigidbodies and colliders on (dead) or off (alive).
     private void SetRagdollPhysicsEnabled(bool active)
     {
         foreach (var rb in ragdollRigidbodies)
@@ -1423,6 +1451,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    // Kills the unit: stops its AI, notifies listeners, plays a death sound, switches to ragdoll, and destroys it after ragdollDisappearDelay.
     public void Die()
     {
         if (isDead) return;
@@ -1459,6 +1488,7 @@ public class EnemyAI : MonoBehaviour
         Destroy(gameObject, ragdollDisappearDelay);
     }
 
+    // Once the ragdoll has settled, turns off its colliders and freezes its rigidbodies so the corpse is visual only.
     private IEnumerator DisableCorpseCollidersAfterSettle()
     {
         if (corpseColliderSettleDelay > 0f) yield return new WaitForSeconds(corpseColliderSettleDelay);
@@ -1481,6 +1511,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    // Moves the body and ragdoll parts onto the Corpse layer so living units can walk over it.
     private void MoveRagdollToCorpseLayer()
     {
         int corpseLayer = LayerMask.NameToLayer(corpseLayerName);
@@ -1550,6 +1581,7 @@ public class EnemyAI : MonoBehaviour
         else Debug.LogWarning(sb.ToString().TrimEnd() + "\n=> Fix: Edit > Project Settings > Physics, and UNCHECK each pair marked BAD above.", this);
     }
 
+    // Waits until the Animator reaches the named state, or stateWaitTimeout passes.
     private IEnumerator WaitUntilInState(string stateName, int layer = 0)
     {
         float t = 0f;
@@ -1565,6 +1597,7 @@ public class EnemyAI : MonoBehaviour
     // window don't both independently claim the same spot and end up stacked together.
     public Vector3 PlanningPosition => (agent != null && agent.hasPath) ? agent.destination : transform.position;
 
+    // Scores random candidate spots (around the target at combat range, or around us) for spacing from squadmates, line of sight, flanking angle and range, and returns the best.
     private Vector3 PickTacticalDestination()
     {
         Vector3 best = transform.position;
@@ -1671,6 +1704,7 @@ public class EnemyAI : MonoBehaviour
         return best;
     }
 
+    // True if a unit standing at point wouldn't have its head inside a wall or obstacle.
     private bool HasWallClearance(Vector3 point)
     {
         if (lineOfSightBlockers.value == 0) return true;
@@ -1678,6 +1712,7 @@ public class EnemyAI : MonoBehaviour
         return !IsEmbeddedInObstruction(checkPoint, wallClearanceDistance);
     }
 
+    // True if a sphere at point overlaps any line-of-sight blocker (other than this unit).
     private bool IsEmbeddedInObstruction(Vector3 point, float radius)
     {
         Collider[] hits = Physics.OverlapSphere(point, radius, lineOfSightBlockers);
@@ -1689,6 +1724,7 @@ public class EnemyAI : MonoBehaviour
         return false;
     }
 
+    // Crouch if the target can still be seen from crouched eye height, otherwise stand to shoot.
     private bool DetermineCrouchStance()
     {
         if (currentTarget == null || lineOfSightBlockers.value == 0) return true;
@@ -1700,6 +1736,7 @@ public class EnemyAI : MonoBehaviour
         return !Physics.Linecast(crouchedEye, targetPoint, lineOfSightBlockers);
     }
 
+    // True if the target is visible from the eye height of the current stance.
     private bool HasLineOfSightAtCurrentStance()
     {
         if (currentTarget == null) return false;
@@ -1725,6 +1762,7 @@ public class EnemyAI : MonoBehaviour
         return false;
     }
 
+    // The nearest hostile within detectionRadius that's inside the field of view and in clear line of sight, or null.
     private Transform FindTarget()
     {
         Collider[] hits = Physics.OverlapSphere(transform.position, detectionRadius);
@@ -1763,12 +1801,14 @@ public class EnemyAI : MonoBehaviour
         return best;
     }
 
+    // True while the current target still exists and is within detection range.
     private bool TargetStillValid()
     {
         if (currentTarget == null) return false;
         return Vector3.Distance(transform.position, currentTarget.position) <= detectionRadius;
     }
 
+    // Turns smoothly toward the target (plus the aim offset).
     private void FaceTarget()
     {
         if (currentTarget == null) return;
@@ -1780,6 +1820,7 @@ public class EnemyAI : MonoBehaviour
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, turnSpeed * Time.deltaTime);
     }
 
+    // Turns instantly to face the target (plus the aim offset), used right before firing.
     private void SnapFaceTarget()
     {
         if (currentTarget == null) return;
@@ -1790,6 +1831,7 @@ public class EnemyAI : MonoBehaviour
         transform.rotation = Quaternion.LookRotation(dir) * Quaternion.Euler(0f, aimRotationOffsetDegrees, 0f);
     }
 
+    // Turns the unit along the NavMeshAgent's path, nudged slightly away from crowding squadmates; root motion then walks it forward.
     private void SteerTowardAgentPath()
     {
         if (agent == null || agent.pathPending || agent.remainingDistance < agent.stoppingDistance) return;
@@ -1851,6 +1893,7 @@ public class EnemyAI : MonoBehaviour
         return separation;
     }
 
+    // Draws the detection and search radii in the Scene view.
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;

@@ -30,6 +30,7 @@ public class Level2Defender : MonoBehaviour
 
     public Vector3 Post => post;
 
+    // Caches EnemyAI and the Animator, and takes the starting position as the post.
     private void Awake()
     {
         ai = GetComponent<EnemyAI>();
@@ -37,11 +38,13 @@ public class Level2Defender : MonoBehaviour
         post = transform.position;
     }
 
+    // Starts the post-guarding loop.
     private void OnEnable()
     {
         StartCoroutine(GuardPost());
     }
 
+    // Every checkInterval, walks the soldier back if it drifted off its post, or adopts a new post after a player order.
     private IEnumerator GuardPost()
     {
         var wait = new WaitForSeconds(checkInterval);
@@ -82,12 +85,14 @@ public class Level2Defender : MonoBehaviour
         return false;
     }
 
+    // Distance between two points ignoring height.
     private static float FlatDistance(Vector3 a, Vector3 b)
     {
         a.y = 0f; b.y = 0f;
         return Vector3.Distance(a, b);
     }
 
+    // Draws the leash radius around the post in the Scene view.
     private void OnDrawGizmosSelected()
     {
         Vector3 p = Application.isPlaying ? post : transform.position;

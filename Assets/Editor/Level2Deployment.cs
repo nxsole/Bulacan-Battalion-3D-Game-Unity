@@ -50,6 +50,7 @@ public static class Level2Deployment
         "Tirad Pass fell on December 2, 1899. General Gregorio del Pilar, only 24, died with most of his men - " +
         "but their stand bought Aguinaldo the time he needed to escape.";
     const string Level2WinMessage = "The pass holds.";
+    const string Level2OverrunMessage = "The camp is overrun. The pass is lost.";
     const string Level2WinSecondMessage =
         "Every hour held at Tirad Pass was another hour for President Aguinaldo to slip deeper into the " +
         "mountains of Northern Luzon.";
@@ -240,6 +241,7 @@ public static class Level2Deployment
         if (player != null) { BuildSprint(player, log); SteadyPlayerAim(player, log); }
         var timer = BuildSurvivalTimer(log);
         if (player != null) WireSurvivalTimer(timer, player, director, log);
+        AddCampOverrun(log);
 
         // ---- verify each column can actually reach the defenders on the baked NavMesh
         foreach (var front in Fronts)
@@ -656,9 +658,10 @@ public static class Level2Deployment
             so.FindProperty("loseMessage").stringValue = Level2LoseMessage;
             so.FindProperty("winMessage").stringValue = Level2WinMessage;
             so.FindProperty("winSecondMessage").stringValue = Level2WinSecondMessage;
+            so.FindProperty("overrunMessage").stringValue = Level2OverrunMessage;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
-        log.AppendLine("  Intro / win / lose text: set for Tirad Pass");
+        log.AppendLine("  Intro / win / overrun / lose text: set for Tirad Pass");
     }
 
     // ---------------------------------------------------------------- intro skip
@@ -777,6 +780,18 @@ public static class Level2Deployment
         log.AppendFormat("  Win condition: timer runs out -> {0}{1}\n",
             outcome != null ? "GameOutcomeManager.TriggerWin" : "(no outcome manager!)",
             director != null ? " + stop the American waves" : "");
+    }
+
+    // The other ending: Americans reaching the camp. Level2CampOverrun goes on the HUD's Camp Centre
+    // marker and finds the outcome manager, spawners, director, timer and player by itself. Kept on
+    // re-runs, so its radius/count tuned in the Inspector survive.
+    static void AddCampOverrun(StringBuilder log)
+    {
+        var centre = FindRoot(HudName)?.transform.Find("Camp Centre");
+        if (centre == null) { log.AppendLine("  Camp overrun: no Camp Centre marker found - not added!"); return; }
+        bool created = centre.GetComponent<Level2CampOverrun>() == null;
+        if (created) Undo.AddComponent<Level2CampOverrun>(centre.gameObject);
+        log.AppendLine("  Camp overrun: " + (created ? "added" : "kept") + " - Americans reaching the camp play the ending with the overrun message");
     }
 
     // ---------------------------------------------------------------- wave director (alternating sides)

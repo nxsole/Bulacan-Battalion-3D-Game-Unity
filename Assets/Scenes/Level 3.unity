@@ -12167,10 +12167,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 7146422396013903275, guid: 563083ffae09b564884e87f1514dcd22, type: 3}
-      propertyPath: sprintInAnyDirection
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 2688705853208391541, guid: 563083ffae09b564884e87f1514dcd22, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
       value: 0
@@ -22046,6 +22042,10 @@ PrefabInstance:
     - target: {fileID: 2095231992904967486, guid: 9499cffb6ce5eae418bc7b9108c91aba, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2748941258893500736, guid: 9499cffb6ce5eae418bc7b9108c91aba, type: 3}
+      propertyPath: maxHealth
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 2748941258893500736, guid: 9499cffb6ce5eae418bc7b9108c91aba, type: 3}
       propertyPath: reinforcementSpawner
@@ -98973,6 +98973,56 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 431224, guid: ccafd6649062902409b7847275334b66, type: 3}
   m_PrefabInstance: {fileID: 1645458466}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1650441201
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1650441202}
+  - component: {fileID: 1650441203}
+  m_Layer: 0
+  m_Name: Boss Defeat Transition
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1650441202
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1650441201}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1650441203
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1650441201}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62328a8e84e040b1adc9a389e3f16006, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BossDefeatTransition
+  boss: {fileID: 0}
+  endingSceneName: Level 3 Ending cutscene
+  delayBeforeFade: 2
+  fadeDuration: 2
+  holdOnBlack: 0.5
+  musicSource: {fileID: 1432423809}
 --- !u!1 &1652825925
 GameObject:
   m_ObjectHideFlags: 0
@@ -125293,3 +125343,4 @@ SceneRoots:
   - {fileID: 358889726}
   - {fileID: 810517695}
   - {fileID: 1432423810}
+  - {fileID: 1650441202}

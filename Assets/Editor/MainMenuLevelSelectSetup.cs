@@ -31,7 +31,7 @@ public static class MainMenuLevelSelectSetup
 
         var scene = EditorSceneManager.OpenScene(MainMenu, OpenSceneMode.Single);
 
-        var intro = Object.FindFirstObjectByType<TiradPassIntroCutscene>(FindObjectsInactive.Include);
+        var intro = Object.FindAnyObjectByType<TiradPassIntroCutscene>(FindObjectsInactive.Include);
         var panel = Find("MainMenuPanel");
         var play = Find("startButton");
         var settings = Find("settingsButton");

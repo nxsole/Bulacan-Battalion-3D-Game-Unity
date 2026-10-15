@@ -38,6 +38,7 @@ public class AllyPathFollower : MonoBehaviour
     // onlyOneStartClip is set, rather than every unit playing it simultaneously.
     private static bool startClipPlayedThisSession;
 
+    // Caches EnemyAI, finds a path if none is assigned, and resets the shared start-clip guard.
     private void Awake()
     {
         ai = GetComponent<EnemyAI>();
@@ -50,6 +51,7 @@ public class AllyPathFollower : MonoBehaviour
         if (startAudioSource == null) startAudioSource = GetComponent<AudioSource>();
     }
 
+    // Begins walking the path straight away if followOnStart is on.
     private void Start()
     {
         if (followOnStart) BeginPath();
@@ -64,12 +66,14 @@ public class AllyPathFollower : MonoBehaviour
         StartCoroutine(FollowRoutine());
     }
 
+    // Stops following the path (the unit keeps whatever order EnemyAI is already carrying out).
     public void StopPath()
     {
         walking = false;
         StopAllCoroutines();
     }
 
+    // Plays the start clip, then sends EnemyAI to each waypoint in turn, waiting for each leg to finish (or time out).
     private IEnumerator FollowRoutine()
     {
         // Optional start bark: play it and hold until it finishes before moving off.
@@ -100,6 +104,7 @@ public class AllyPathFollower : MonoBehaviour
         walking = false; // reached the final point (or path ended) - stop, per design.
     }
 
+    // Plays the optional start bark (once for the squad if onlyOneStartClip), waits for it to end, then triggers the squad's reply cry.
     private IEnumerator PlayStartClipAndWait()
     {
         if (startMoveClip == null) yield break;

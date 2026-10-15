@@ -26,6 +26,7 @@ public class PlayerHealthBar : MonoBehaviour
     private int shown = -1;
     private float flashUntil;
 
+    // Checks it can read the player's health, then builds one bar segment per max health point.
     private void Start()
     {
         if (player == null) player = GetComponentInParent<FirstPersonController>();
@@ -49,6 +50,7 @@ public class PlayerHealthBar : MonoBehaviour
         }
     }
 
+    // Colours each segment full or empty from the player's current health, flashing the one just lost.
     private void Update()
     {
         if (segments == null) return;

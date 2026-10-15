@@ -51,6 +51,11 @@ public class GameOutcomeManager : MonoBehaviour
     [Tooltip("Separate TMP text for the second line. If left empty, the same outcomeText element is reused.")]
     [SerializeField] private TMP_Text winSecondText;
 
+    [Header("Overrun Ending")]
+    [Tooltip("First line of the ending when the enemy overruns the camp (Level2CampOverrun), shown instead of the win message. The rest of the win sequence - pan, second line, next scene - plays as normal.")]
+    [TextArea(2, 5)]
+    [SerializeField] private string overrunMessage = "The camp is overrun. The pass is lost.";
+
     [Header("Audio")]
     [Tooltip("Optional source for the win/lose stinger. If empty, one is added when needed.")]
     [SerializeField] private AudioSource stingerSource;
@@ -142,10 +147,19 @@ public class GameOutcomeManager : MonoBehaviour
     {
         if (outcomeDecided) return;
         outcomeDecided = true;
-        StartCoroutine(WinRoutine(playerToFreeze));
+        StartCoroutine(WinRoutine(playerToFreeze, winMessage));
     }
 
-    private IEnumerator WinRoutine(Transform playerToFreeze)
+    // Level 2: the enemy reached the camp. Same ending as a win, but it opens on overrunMessage.
+    public void TriggerOverrun(Transform playerToFreeze = null)
+    {
+        if (outcomeDecided) return;
+        outcomeDecided = true;
+        if (debugLogging) Debug.Log("[Outcome] Camp overrun -> playing the ending with the overrun message.", this);
+        StartCoroutine(WinRoutine(playerToFreeze, overrunMessage));
+    }
+
+    private IEnumerator WinRoutine(Transform playerToFreeze, string firstMessage)
     {
         PlayStinger(winStinger);
 
@@ -183,7 +197,7 @@ public class GameOutcomeManager : MonoBehaviour
                 if (outcomeText != null)
                 {
                     SetTextAlpha(outcomeText, 1f);
-                    StartCoroutine(Typewriter(outcomeText, winMessage, winTypeSpeed));
+                    StartCoroutine(Typewriter(outcomeText, firstMessage, winTypeSpeed));
                 }
             }
 

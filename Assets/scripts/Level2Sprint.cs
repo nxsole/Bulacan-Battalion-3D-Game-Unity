@@ -36,6 +36,7 @@ public class Level2Sprint : MonoBehaviour
 
     public bool IsSprinting => sprintBlend > 0.5f;
 
+    // Caches the CharacterController, finds the player script and remembers the camera's normal field of view.
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
@@ -43,6 +44,7 @@ public class Level2Sprint : MonoBehaviour
         if (playerCamera != null) baseFov = playerCamera.fieldOfView;
     }
 
+    // Ramps the sprint up or down from input and player state, adds the extra speed, and widens the FOV while sprinting.
     private void Update()
     {
         float forward = Input.GetAxis("Vertical");

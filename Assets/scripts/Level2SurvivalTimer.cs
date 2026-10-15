@@ -70,6 +70,15 @@ public class Level2SurvivalTimer : MonoBehaviour
         onTimerFinished.Invoke();
     }
 
+    // Stops the countdown without firing onTimerFinished and hides it - the level ended another way
+    // (Level2CampOverrun).
+    public void Cancel()
+    {
+        Running = false;
+        enabled = false;
+        if (timerText != null) timerText.gameObject.SetActive(false);
+    }
+
     private void Refresh()
     {
         if (timerText == null) return;

@@ -16,6 +16,7 @@ public class respawnPoint : MonoBehaviour
 
     private bool hasBeenActivated = false;
 
+    // Editor callback when the component is added: makes the collider a trigger.
     private void Reset()
     {
         // Make sure the collider is set up correctly as soon as this is added
@@ -23,6 +24,7 @@ public class respawnPoint : MonoBehaviour
         col.isTrigger = true;
     }
 
+    // When the player walks in, makes this their respawn point and plays the activation effect the first time.
     private void OnTriggerEnter(Collider other)
     {
         if (!other.CompareTag(playerTag)) return;
