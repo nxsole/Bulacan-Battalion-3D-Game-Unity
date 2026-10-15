@@ -10,8 +10,14 @@ public class PauseManager : MonoBehaviour
     public MonoBehaviour playerController;
 
     [Header("Audio Settings")]
-    [Tooltip("Drag your Background Music AudioSource here")]
+    [Tooltip("Drag your persistent music AudioSource here")]
     public AudioSource backgroundMusic;
+
+    [Tooltip("Drag your secondary scene music AudioSource here")]
+    public AudioSource music;
+
+    [Tooltip("Drag your level music AudioSource here")]
+    public AudioSource levelMusic;
 
     [Header("Scene Settings")]
     public string mainMenuSceneName = "main menu";
@@ -38,10 +44,22 @@ public class PauseManager : MonoBehaviour
         pauseMenuPanel.SetActive(true);
         Time.timeScale = 0f; // Freeze game speed
 
-        // Pause background music explicitly
+        // Pause persistent background music if active
         if (backgroundMusic != null && backgroundMusic.isPlaying)
         {
             backgroundMusic.Pause();
+        }
+
+        // Pause secondary scene music if active
+        if (music != null && music.isPlaying)
+        {
+            music.Pause();
+        }
+
+        // Pause level music if active
+        if (levelMusic != null && levelMusic.isPlaying)
+        {
+            levelMusic.Pause();
         }
 
         // Unlock and show cursor
@@ -60,10 +78,22 @@ public class PauseManager : MonoBehaviour
         pauseMenuPanel.SetActive(false);
         Time.timeScale = 1f; // Restore normal speed
 
-        // Resume background music from where it stopped
+        // Resume persistent background music
         if (backgroundMusic != null)
         {
             backgroundMusic.UnPause();
+        }
+
+        // Resume secondary scene music
+        if (music != null)
+        {
+            music.UnPause();
+        }
+
+        // Resume level music
+        if (levelMusic != null)
+        {
+            levelMusic.UnPause();
         }
 
         // Hide and lock cursor
@@ -84,6 +114,16 @@ public class PauseManager : MonoBehaviour
         if (backgroundMusic != null)
         {
             backgroundMusic.Stop();
+        }
+
+        if (music != null)
+        {
+            music.Stop();
+        }
+
+        if (levelMusic != null)
+        {
+            levelMusic.Stop();
         }
 
         SceneManager.LoadScene(mainMenuSceneName);

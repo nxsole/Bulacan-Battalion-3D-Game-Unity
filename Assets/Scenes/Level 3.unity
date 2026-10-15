@@ -12219,6 +12219,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3269561887477678678, guid: 563083ffae09b564884e87f1514dcd22, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: c158735622e889740a9b38b170119dc6, type: 3}
     - target: {fileID: 3656495528384510022, guid: 563083ffae09b564884e87f1514dcd22, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
       value: 0
@@ -108502,7 +108506,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PauseManager
   pauseMenuPanel: {fileID: 176662486}
   playerController: {fileID: 176662487}
-  backgroundMusic: {fileID: 0}
+  backgroundMusic: {fileID: 1432423809}
+  music: {fileID: 0}
+  levelMusic: {fileID: 0}
   mainMenuSceneName: main menu
 --- !u!4 &1824428621
 Transform:
