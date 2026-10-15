@@ -4801,7 +4801,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: d231a58c125cc1e43a4931343825a059, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 27d505562dfbff54e897ed94a8c8191f, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -184872,6 +184872,8 @@ MonoBehaviour:
   pauseMenuPanel: {fileID: 768512172}
   playerController: {fileID: 1354717343}
   backgroundMusic: {fileID: 319289194}
+  music: {fileID: 1617665982}
+  levelMusic: {fileID: 954978932}
   mainMenuSceneName: main menu
 --- !u!4 &1170887912
 Transform:
